@@ -6,8 +6,17 @@ function switchTab(target) {
   document.getElementById('tab-login').setAttribute('aria-selected', isLogin);
   document.getElementById('tab-signup').setAttribute('aria-selected', !isLogin);
 
-  document.getElementById('form-login').classList.toggle('is-active', isLogin);
-  document.getElementById('form-signup').classList.toggle('is-active', !isLogin);
+  const loginForm = document.getElementById('form-login');
+  const signupForm = document.getElementById('form-signup');
+
+  loginForm.classList.toggle('is-active', isLogin);
+  signupForm.classList.toggle('is-active', !isLogin);
+
+  // Rejoue l'animation d'entrée sur le formulaire qui devient visible.
+  const enteringForm = isLogin ? loginForm : signupForm;
+  enteringForm.classList.remove('form-enter');
+  void enteringForm.offsetWidth; // force le navigateur à relire le style avant de ré-appliquer l'animation
+  enteringForm.classList.add('form-enter');
 
   hideAlert();
 }
