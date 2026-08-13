@@ -7,9 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/tokens.css">
-<link rel="stylesheet" href="assets/css/base.css">
-<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="components.css">
 <style>
   .auth-layout {
     min-height: 100vh;
@@ -55,16 +55,37 @@
     bottom: -60px;
     width: 320px;
     height: 320px;
-    border: 1.5px solid rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,255,255,0.1);
     border-radius: 50%;
+    animation: slowSpin 90s linear infinite;
   }
 
   .auth-stamp::before {
     content: '';
     position: absolute;
     inset: 28px;
-    border: 1.5px solid rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,255,255,0.1);
     border-radius: 50%;
+  }
+
+  .auth-stamp::after {
+    content: '';
+    position: absolute;
+    inset: 56px;
+    border: 1px dashed rgba(255,255,255,0.14);
+    border-radius: 50%;
+  }
+
+  .auth-glow {
+    position: absolute;
+    left: -80px;
+    top: -80px;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(46,110,142,0.55), transparent 70%);
+    animation: gentlePulse 6s ease-in-out infinite;
+    pointer-events: none;
   }
 
   .auth-foot {
@@ -128,9 +149,23 @@
     margin-top: var(--space-lg);
   }
 
+  .field input {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+  }
+
+  .field input:focus {
+    transform: translateY(-1px);
+  }
+
   @media (max-width: 860px) {
     .auth-layout { grid-template-columns: 1fr; }
     .auth-brand { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fade-in-up, .fade-in-up-delay, .form-enter, .tab.is-active, .auth-stamp, .auth-glow {
+      animation: none !important;
+    }
   }
 </style>
 </head>
@@ -139,17 +174,18 @@
 <div class="auth-layout">
 
   <div class="auth-brand">
-    <span class="auth-brand-mark">Ognandji Docs</span>
-    <div class="auth-brand-content">
+    <span class="auth-brand-mark fade-in-up">Ognandji Docs</span>
+    <div class="auth-brand-content fade-in-up-delay">
       <h1>La documentation de votre entreprise, enfin centralisée.</h1>
       <p>Contrats, procédures et savoir-faire réunis dans un espace privé, accessible uniquement à votre équipe.</p>
     </div>
-    <span class="auth-foot">Un produit Ognandji Labs</span>
+    <span class="auth-foot fade-in-up-delay">Un produit Ognandji Labs</span>
+    <div class="auth-glow" aria-hidden="true"></div>
     <div class="auth-stamp" aria-hidden="true"></div>
   </div>
 
   <div class="auth-panel">
-    <div class="auth-form-wrap">
+    <div class="auth-form-wrap fade-in-up">
 
       <div class="tabs" role="tablist">
         <button class="tab is-active" id="tab-login" role="tab" aria-selected="true" onclick="switchTab('login')">Connexion</button>
@@ -158,7 +194,7 @@
 
       <div id="form-alert" class="alert alert-danger" style="display:none;"></div>
 
-      <form id="form-login" class="is-active" novalidate>
+      <form id="form-login" class="is-active form-enter" novalidate>
         <h2>Bon retour</h2>
         <p class="auth-subtitle">Connectez-vous à l'espace de votre entreprise.</p>
 
@@ -229,6 +265,6 @@
 
 </div>
 
-<script src="assets/js/auth.js"></script>
+<script src="auth.js"></script>
 </body>
 </html>
