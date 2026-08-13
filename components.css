@@ -186,3 +186,58 @@
   background: var(--color-success-bg);
   color: var(--color-success);
 }
+
+/* Animations */
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slowSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes gentlePulse {
+  0%, 100% { opacity: 0.08; }
+  50% { opacity: 0.16; }
+}
+
+.fade-in-up {
+  animation: fadeSlideUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.fade-in-up-delay {
+  animation: fadeSlideUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+.form-enter {
+  animation: fadeSlideIn 0.35s ease both;
+}
+
+.btn-primary {
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(46, 110, 142, 0.28);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-1px);
+}
+
+.tab {
+  transition: background 0.2s ease, color 0.2s ease, transform 0.1s ease;
+}
+
+.tab.is-active {
+  animation: fadeSlideIn 0.25s ease both;
+}
