@@ -1,0 +1,62 @@
+/* Ognandji Docs — design tokens */
+
+:root {
+  /* Couleurs — marque */
+  --color-ink: #16283D;
+  --color-ink-soft: #2A3F58;
+  --color-trust: #2E6E8E;
+  --color-trust-dark: #24576F;
+  --color-trust-light: #E4EEF2;
+  --color-amber: #C87F3F;
+  --color-amber-dark: #A6672E;
+  --color-amber-light: #FBEEDF;
+
+  /* Couleurs — neutres */
+  --color-bg: #F7F8F7;
+  --color-surface: #FFFFFF;
+  --color-surface-muted: #F1F2F0;
+  --color-border: #E2E4E2;
+  --color-border-strong: #C9CCC9;
+
+  /* Texte */
+  --color-text-primary: #16283D;
+  --color-text-secondary: #5B6B7A;
+  --color-text-muted: #8B978F;
+  --color-text-on-trust: #FFFFFF;
+  --color-text-on-amber: #4A2E11;
+
+  /* États sémantiques */
+  --color-success: #2F7D5C;
+  --color-success-bg: #E5F2EB;
+  --color-danger: #B3432F;
+  --color-danger-bg: #FBEAE6;
+  --color-warning: #A6672E;
+  --color-warning-bg: #FBEEDF;
+
+  /* Typographie */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'IBM Plex Sans', -apple-system, Segoe UI, sans-serif;
+  --font-mono: 'IBM Plex Mono', Consolas, monospace;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-md: 1.125rem;
+  --fs-lg: 1.375rem;
+  --fs-xl: 1.75rem;
+  --fs-2xl: 2.25rem;
+
+  /* Espacements */
+  --space-xs: 0.375rem;
+  --space-sm: 0.75rem;
+  --space-md: 1.25rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+
+  /* Rayons et ombres */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --shadow-card: 0 1px 2px rgba(22, 40, 61, 0.06), 0 2px 8px rgba(22, 40, 61, 0.04);
+  --shadow-focus: 0 0 0 3px rgba(46, 110, 142, 0.18);
+}
