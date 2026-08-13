@@ -11,98 +11,102 @@
 <link rel="stylesheet" href="base.css">
 <link rel="stylesheet" href="components.css">
 <style>
-  .auth-layout {
+  body {
+    position: relative;
     min-height: 100vh;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    overflow-x: hidden;
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(46,110,142,0.10), transparent 65%),
+      radial-gradient(circle, rgba(22,40,61,0.06) 1px, transparent 1px) 0 0 / 22px 22px,
+      var(--color-bg);
   }
 
-  .auth-brand {
-    background: var(--color-ink);
-    color: #fff;
-    padding: var(--space-xl);
+  .stamp-decor {
+    position: fixed;
+    top: -140px;
+    right: -140px;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(22,40,61,0.06);
+    animation: slowSpin 120s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .stamp-decor::before {
+    content: '';
+    position: absolute;
+    inset: 40px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(22,40,61,0.06);
+  }
+
+  .stamp-decor::after {
+    content: '';
+    position: absolute;
+    inset: 80px;
+    border-radius: 50%;
+    border: 1px dashed rgba(22,40,61,0.08);
+  }
+
+  .auth-center {
+    position: relative;
+    z-index: 1;
+    max-width: 420px;
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-md) var(--space-lg);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .auth-brand-mark {
-    font-family: var(--font-display);
-    font-size: var(--fs-lg);
-    font-weight: 600;
-  }
-
-  .auth-brand-content {
-    max-width: 420px;
-  }
-
-  .auth-brand-content h1 {
-    color: #fff;
-    font-size: var(--fs-2xl);
-    margin-bottom: var(--space-md);
-  }
-
-  .auth-brand-content p {
-    color: rgba(255,255,255,0.72);
-    font-size: var(--fs-md);
-  }
-
-  .auth-stamp {
-    position: absolute;
-    right: -60px;
-    bottom: -60px;
-    width: 320px;
-    height: 320px;
-    border: 1.5px solid rgba(255,255,255,0.1);
-    border-radius: 50%;
-    animation: slowSpin 90s linear infinite;
-  }
-
-  .auth-stamp::before {
-    content: '';
-    position: absolute;
-    inset: 28px;
-    border: 1.5px solid rgba(255,255,255,0.1);
-    border-radius: 50%;
-  }
-
-  .auth-stamp::after {
-    content: '';
-    position: absolute;
-    inset: 56px;
-    border: 1px dashed rgba(255,255,255,0.14);
-    border-radius: 50%;
-  }
-
-  .auth-glow {
-    position: absolute;
-    left: -80px;
-    top: -80px;
-    width: 260px;
-    height: 260px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(46,110,142,0.55), transparent 70%);
-    animation: gentlePulse 6s ease-in-out infinite;
-    pointer-events: none;
-  }
-
-  .auth-foot {
-    font-size: var(--fs-xs);
-    color: rgba(255,255,255,0.5);
-  }
-
-  .auth-panel {
-    display: flex;
     align-items: center;
+    min-height: 100vh;
     justify-content: center;
-    padding: var(--space-xl) var(--space-lg);
   }
 
-  .auth-form-wrap {
+  .auth-header {
+    text-align: center;
+    margin-bottom: var(--space-lg);
+  }
+
+  .auth-header .brand-mark {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 600;
+    color: var(--color-ink);
+    letter-spacing: 0.01em;
+    margin-bottom: var(--space-sm);
+  }
+
+  .auth-header .brand-mark::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-trust);
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  .auth-header h1 {
+    font-size: var(--fs-xl);
+    margin-bottom: var(--space-xs);
+  }
+
+  .auth-header p {
+    font-size: var(--fs-sm);
+    max-width: 340px;
+    margin: 0 auto;
+  }
+
+  .auth-card {
     width: 100%;
-    max-width: 380px;
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-lg);
+    border: 1px solid var(--color-border);
   }
 
   .auth-form-wrap h2 {
@@ -113,11 +117,11 @@
     margin-bottom: var(--space-lg);
   }
 
-  .auth-panel form {
+  .auth-card form {
     display: none;
   }
 
-  .auth-panel form.is-active {
+  .auth-card form.is-active {
     display: block;
   }
 
@@ -142,7 +146,7 @@
     color: var(--color-text-secondary);
   }
 
-  .divider-note {
+  .auth-footer {
     text-align: center;
     font-size: var(--fs-xs);
     color: var(--color-text-muted);
@@ -157,13 +161,12 @@
     transform: translateY(-1px);
   }
 
-  @media (max-width: 860px) {
-    .auth-layout { grid-template-columns: 1fr; }
-    .auth-brand { display: none; }
+  @media (max-width: 480px) {
+    .auth-card { padding: var(--space-md); }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .fade-in-up, .fade-in-up-delay, .form-enter, .tab.is-active, .auth-stamp, .auth-glow {
+    .fade-in-up, .fade-in-up-delay, .form-enter, .tab.is-active, .stamp-decor {
       animation: none !important;
     }
   }
@@ -171,97 +174,86 @@
 </head>
 <body>
 
-<div class="auth-layout">
+<div class="stamp-decor" aria-hidden="true"></div>
 
-  <div class="auth-brand">
-    <span class="auth-brand-mark fade-in-up">Ognandji Docs</span>
-    <div class="auth-brand-content fade-in-up-delay">
-      <h1>La documentation de votre entreprise, enfin centralisée.</h1>
-      <p>Contrats, procédures et savoir-faire réunis dans un espace privé, accessible uniquement à votre équipe.</p>
-    </div>
-    <span class="auth-foot fade-in-up-delay">Un produit Ognandji Labs</span>
-    <div class="auth-glow" aria-hidden="true"></div>
-    <div class="auth-stamp" aria-hidden="true"></div>
+<div class="auth-center">
+
+  <div class="auth-header fade-in-up">
+    <span class="brand-mark">Ognandji Docs</span>
+    <h1>Bienvenue</h1>
+    <p>La documentation de votre entreprise, centralisée et sécurisée dans un espace privé.</p>
   </div>
 
-  <div class="auth-panel">
-    <div class="auth-form-wrap fade-in-up">
+  <div class="auth-card fade-in-up-delay">
 
-      <div class="tabs" role="tablist">
-        <button class="tab is-active" id="tab-login" role="tab" aria-selected="true" onclick="switchTab('login')">Connexion</button>
-        <button class="tab" id="tab-signup" role="tab" aria-selected="false" onclick="switchTab('signup')">Créer un compte</button>
+    <div class="tabs" role="tablist">
+      <button class="tab is-active" id="tab-login" role="tab" aria-selected="true" onclick="switchTab('login')">Connexion</button>
+      <button class="tab" id="tab-signup" role="tab" aria-selected="false" onclick="switchTab('signup')">Créer un compte</button>
+    </div>
+
+    <div id="form-alert" class="alert alert-danger" style="display:none;"></div>
+
+    <form id="form-login" class="is-active form-enter" novalidate>
+      <div class="field" id="login-email-field">
+        <label for="login-email">Adresse e-mail</label>
+        <input type="email" id="login-email" placeholder="nom@entreprise.com" autocomplete="email">
+        <span class="field-error">Entrez une adresse e-mail valide.</span>
       </div>
 
-      <div id="form-alert" class="alert alert-danger" style="display:none;"></div>
+      <div class="field password-field" id="login-password-field">
+        <label for="login-password">Mot de passe</label>
+        <input type="password" id="login-password" placeholder="Votre mot de passe" autocomplete="current-password">
+        <button type="button" class="password-toggle" onclick="togglePassword('login-password', this)">Afficher</button>
+        <span class="field-error">Entrez votre mot de passe.</span>
+      </div>
 
-      <form id="form-login" class="is-active form-enter" novalidate>
-        <h2>Bon retour</h2>
-        <p class="auth-subtitle">Connectez-vous à l'espace de votre entreprise.</p>
+      <div class="auth-meta">
+        <label><input type="checkbox" id="login-remember"> Se souvenir de moi</label>
+        <a href="#">Mot de passe oublié ?</a>
+      </div>
 
-        <div class="field" id="login-email-field">
-          <label for="login-email">Adresse e-mail</label>
-          <input type="email" id="login-email" placeholder="nom@entreprise.com" autocomplete="email">
-          <span class="field-error">Entrez une adresse e-mail valide.</span>
-        </div>
+      <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
+    </form>
 
-        <div class="field password-field" id="login-password-field">
-          <label for="login-password">Mot de passe</label>
-          <input type="password" id="login-password" placeholder="Votre mot de passe" autocomplete="current-password">
-          <button type="button" class="password-toggle" onclick="togglePassword('login-password', this)">Afficher</button>
-          <span class="field-error">Entrez votre mot de passe.</span>
-        </div>
-
-        <div class="auth-meta">
-          <label><input type="checkbox" id="login-remember"> Se souvenir de moi</label>
-          <a href="#">Mot de passe oublié ?</a>
-        </div>
-
-        <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
-      </form>
-
-      <form id="form-signup" novalidate>
-        <h2>Créer votre espace</h2>
-        <p class="auth-subtitle">Quelques informations pour démarrer.</p>
-
-        <div class="field-row">
-          <div class="field" id="signup-firstname-field">
-            <label for="signup-firstname">Prénom</label>
-            <input type="text" id="signup-firstname" placeholder="Junior" autocomplete="given-name">
-            <span class="field-error">Champ requis.</span>
-          </div>
-          <div class="field" id="signup-lastname-field">
-            <label for="signup-lastname">Nom</label>
-            <input type="text" id="signup-lastname" placeholder="Arafat" autocomplete="family-name">
-            <span class="field-error">Champ requis.</span>
-          </div>
-        </div>
-
-        <div class="field" id="signup-company-field">
-          <label for="signup-company">Nom de l'entreprise</label>
-          <input type="text" id="signup-company" placeholder="Ognandji Labs" autocomplete="organization">
+    <form id="form-signup" novalidate>
+      <div class="field-row">
+        <div class="field" id="signup-firstname-field">
+          <label for="signup-firstname">Prénom</label>
+          <input type="text" id="signup-firstname" placeholder="Ex : Aïcha" autocomplete="given-name">
           <span class="field-error">Champ requis.</span>
         </div>
-
-        <div class="field" id="signup-email-field">
-          <label for="signup-email">Adresse e-mail</label>
-          <input type="email" id="signup-email" placeholder="nom@entreprise.com" autocomplete="email">
-          <span class="field-error">Entrez une adresse e-mail valide.</span>
+        <div class="field" id="signup-lastname-field">
+          <label for="signup-lastname">Nom</label>
+          <input type="text" id="signup-lastname" placeholder="Ex : Moussavou" autocomplete="family-name">
+          <span class="field-error">Champ requis.</span>
         </div>
+      </div>
 
-        <div class="field password-field" id="signup-password-field">
-          <label for="signup-password">Mot de passe</label>
-          <input type="password" id="signup-password" placeholder="8 caractères minimum" autocomplete="new-password">
-          <button type="button" class="password-toggle" onclick="togglePassword('signup-password', this)">Afficher</button>
-          <span class="field-error">8 caractères minimum.</span>
-        </div>
+      <div class="field" id="signup-company-field">
+        <label for="signup-company">Nom de l'entreprise</label>
+        <input type="text" id="signup-company" placeholder="Ex : Établissement Moussavou" autocomplete="organization">
+        <span class="field-error">Champ requis.</span>
+      </div>
 
-        <button type="submit" class="btn btn-primary btn-block">Créer mon compte</button>
-      </form>
+      <div class="field" id="signup-email-field">
+        <label for="signup-email">Adresse e-mail</label>
+        <input type="email" id="signup-email" placeholder="nom@entreprise.com" autocomplete="email">
+        <span class="field-error">Entrez une adresse e-mail valide.</span>
+      </div>
 
-      <p class="divider-note">En continuant, vous acceptez nos conditions d'utilisation.</p>
+      <div class="field password-field" id="signup-password-field">
+        <label for="signup-password">Mot de passe</label>
+        <input type="password" id="signup-password" placeholder="8 caractères minimum" autocomplete="new-password">
+        <button type="button" class="password-toggle" onclick="togglePassword('signup-password', this)">Afficher</button>
+        <span class="field-error">8 caractères minimum.</span>
+      </div>
 
-    </div>
+      <button type="submit" class="btn btn-primary btn-block">Créer mon compte</button>
+    </form>
+
   </div>
+
+  <p class="auth-footer fade-in-up-delay">Un produit Ognandji Labs · En continuant, vous acceptez nos conditions d'utilisation.</p>
 
 </div>
 
