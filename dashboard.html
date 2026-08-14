@@ -37,8 +37,8 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
         Données privées et sécurisées
       </span>
-      <a href="#" class="sidebar-link" style="padding-left:0;">
-        <span class="sidebar-icon">◐</span> Mon compte
+      <a href="#" class="sidebar-link" style="padding-left:0;" onclick="handleLogout(); return false;">
+        <span class="sidebar-icon">◐</span> Se déconnecter
       </a>
     </div>
   </aside>
@@ -46,7 +46,10 @@
   <main class="app-main">
 
     <div class="app-header fade-in-up">
-      <h1>Tableau de bord</h1>
+      <div>
+        <h1>Tableau de bord</h1>
+        <p id="dashboard-subtitle" style="font-size: var(--fs-sm); color: var(--color-text-muted); margin: 2px 0 0;"></p>
+      </div>
       <div class="app-search">
         <span>⌕</span>
         <input type="text" placeholder="Rechercher un document ou une procédure">
@@ -73,22 +76,22 @@
     <div class="stats-grid fade-in-up-delay">
       <div class="card stat-card">
         <p class="stat-label">Documents</p>
-        <p class="stat-value">0</p>
+        <p class="stat-value" id="stat-documents">0</p>
         <a href="documents.html" class="stat-link">Ajouter un document →</a>
       </div>
       <div class="card stat-card">
         <p class="stat-label">Procédures</p>
-        <p class="stat-value">0</p>
+        <p class="stat-value" id="stat-procedures">0</p>
         <a href="procedures.html" class="stat-link">Créer une procédure →</a>
       </div>
       <div class="card stat-card">
         <p class="stat-label">Catégories</p>
-        <p class="stat-value">0</p>
+        <p class="stat-value" id="stat-categories">0</p>
         <a href="documents.html" class="stat-link">Organiser →</a>
       </div>
       <div class="card stat-card">
         <p class="stat-label">Membres</p>
-        <p class="stat-value">1</p>
+        <p class="stat-value" id="stat-members">1</p>
         <a href="#" class="stat-link">Inviter votre équipe →</a>
       </div>
     </div>
@@ -105,6 +108,7 @@
   </main>
 
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 </body>
