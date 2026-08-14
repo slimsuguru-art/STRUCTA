@@ -83,7 +83,7 @@ document.getElementById('form-login').addEventListener('submit', function (event
   if (hasError) return;
 
   // Point d'intégration Supabase Auth (signInWithPassword) à brancher ici.
-  showAlert('Connexion : intégration Supabase à venir.');
+  showToast('Connexion : intégration Supabase à venir.', 'info');
 });
 
 document.getElementById('form-signup').addEventListener('submit', function (event) {
@@ -113,5 +113,5 @@ document.getElementById('form-signup').addEventListener('submit', function (even
   if (hasError) return;
 
   // Point d'intégration Supabase Auth (signUp) + création de l'espace entreprise à brancher ici.
-  showAlert('Création de compte : intégration Supabase à venir.');
+  showToast('Création de compte : intégration Supabase à venir.', 'info');
 });
