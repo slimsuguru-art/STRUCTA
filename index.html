@@ -3,269 +3,104 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ognandji Docs — Connexion</title>
+<title>Ognandji Docs — La documentation de votre entreprise, centralisée</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="base.css">
 <link rel="stylesheet" href="components.css">
-<style>
-  body {
-    position: relative;
-    min-height: 100vh;
-    overflow-x: hidden;
-    background:
-      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(46,110,142,0.10), transparent 65%),
-      radial-gradient(circle, rgba(22,40,61,0.06) 1px, transparent 1px) 0 0 / 22px 22px,
-      var(--color-bg);
-  }
-
-  .atom-decor {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 720px;
-    height: 720px;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.55;
-  }
-
-  .atom-decor svg {
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-
-  .auth-center {
-    position: relative;
-    z-index: 1;
-    max-width: 420px;
-    margin: 0 auto;
-    padding: var(--space-xl) var(--space-md) var(--space-lg);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    justify-content: center;
-  }
-
-  .auth-header {
-    text-align: center;
-    margin-bottom: var(--space-lg);
-  }
-
-  .auth-header .brand-mark {
-    display: inline-block;
-    font-family: var(--font-display);
-    font-size: var(--fs-md);
-    font-weight: 600;
-    color: var(--color-ink);
-    letter-spacing: 0.01em;
-    margin-bottom: var(--space-sm);
-  }
-
-  .auth-header .brand-mark::before {
-    content: '';
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--color-trust);
-    margin-right: 8px;
-    vertical-align: middle;
-  }
-
-  .auth-header h1 {
-    font-size: var(--fs-xl);
-    margin-bottom: var(--space-xs);
-  }
-
-  .auth-header p {
-    font-size: var(--fs-sm);
-    max-width: 340px;
-    margin: 0 auto;
-  }
-
-  .auth-card {
-    width: 100%;
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
-    padding: var(--space-lg);
-    border: 1px solid var(--color-border);
-  }
-
-  .auth-form-wrap h2 {
-    margin-bottom: var(--space-xs);
-  }
-
-  .auth-subtitle {
-    margin-bottom: var(--space-lg);
-  }
-
-  .auth-card form {
-    display: none;
-  }
-
-  .auth-card form.is-active {
-    display: block;
-  }
-
-  .field-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-sm);
-  }
-
-  .auth-meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: var(--fs-sm);
-    margin: -0.25rem 0 var(--space-md);
-  }
-
-  .auth-meta label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--color-text-secondary);
-  }
-
-  .auth-footer {
-    text-align: center;
-    font-size: var(--fs-xs);
-    color: var(--color-text-muted);
-    margin-top: var(--space-lg);
-  }
-
-  .field input {
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
-  }
-
-  .field input:focus {
-    transform: translateY(-1px);
-  }
-
-  @media (max-width: 480px) {
-    .auth-card { padding: var(--space-md); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .fade-in-up, .fade-in-up-delay, .form-enter, .tab.is-active {
-      animation: none !important;
-    }
-    .atom-decor circle,
-    .atom-decor animateMotion {
-      display: none;
-    }
-  }
-</style>
+<link rel="stylesheet" href="landing.css">
 </head>
-<body>
+<body class="landing">
 
-<div class="atom-decor" aria-hidden="true">
-  <svg viewBox="0 0 720 720">
-    <ellipse cx="360" cy="360" rx="300" ry="118" fill="none" stroke="#2E6E8E" stroke-width="1" opacity="0.16" transform="rotate(0 360 360)"/>
-    <ellipse cx="360" cy="360" rx="300" ry="118" fill="none" stroke="#C87F3F" stroke-width="1" opacity="0.14" transform="rotate(60 360 360)"/>
-    <ellipse cx="360" cy="360" rx="300" ry="118" fill="none" stroke="#16283D" stroke-width="1" opacity="0.10" transform="rotate(120 360 360)"/>
-    <circle cx="360" cy="360" r="5" fill="#16283D" opacity="0.35"/>
-    <circle r="4" fill="#2E6E8E" opacity="0.6">
-      <animateMotion dur="22s" repeatCount="indefinite" path="M360,360 m-300,0 a300,118 0 1,0 600,0 a300,118 0 1,0 -600,0"/>
-    </circle>
-    <circle r="3.5" fill="#C87F3F" opacity="0.55">
-      <animateMotion dur="28s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear" path="M360,360 m-300,0 a300,118 0 1,0 600,0 a300,118 0 1,0 -600,0"/>
-    </circle>
-    <circle r="3.5" fill="#16283D" opacity="0.4">
-      <animateMotion dur="34s" repeatCount="indefinite" path="M360,360 m-300,0 a300,118 0 1,0 600,0 a300,118 0 1,0 -600,0"/>
-    </circle>
-  </svg>
-</div>
-
-<div class="auth-center">
-
-  <div class="auth-header fade-in-up">
-    <span class="brand-mark">Ognandji Docs</span>
-    <h1>Bienvenue</h1>
-    <p>La documentation de votre entreprise, centralisée et sécurisée dans un espace privé.</p>
+<nav class="nav-bar fade-in-up">
+  <a href="index.html" class="brand-mark">Ognandji Docs</a>
+  <div class="nav-actions">
+    <a href="login.html" class="btn btn-secondary">Se connecter</a>
+    <a href="login.html?tab=signup" class="btn btn-primary">Créer un compte</a>
   </div>
+</nav>
 
-  <div class="auth-card fade-in-up-delay">
+<header class="hero fade-in-up-delay">
+  <span class="hero-eyebrow">Pour les PME</span>
+  <h1>Toute la mémoire de votre entreprise, enfin en un seul endroit.</h1>
+  <p>Contrats, procédures et savoir-faire — centralisés dans un espace numérique privé et sécurisé, accessible uniquement par votre équipe.</p>
+  <div class="hero-actions">
+    <a href="login.html?tab=signup" class="btn btn-primary">Créer mon espace entreprise</a>
+    <a href="login.html" class="btn btn-secondary">J'ai déjà un compte</a>
+  </div>
+</header>
 
-    <div class="tabs" role="tablist">
-      <button class="tab is-active" id="tab-login" role="tab" aria-selected="true" onclick="switchTab('login')">Connexion</button>
-      <button class="tab" id="tab-signup" role="tab" aria-selected="false" onclick="switchTab('signup')">Créer un compte</button>
+<p class="audience-strip">Conçu pour les responsables de petites et moyennes entreprises qui veulent arrêter de dépendre du papier, des fichiers dispersés ou de la mémoire d'un seul employé.</p>
+
+<section class="features">
+  <div class="features-heading">
+    <h2>Une bibliothèque numérique privée, pensée pour votre entreprise</h2>
+    <p>Quatre espaces simples pour organiser ce qui compte vraiment.</p>
+  </div>
+  <div class="features-grid">
+
+    <div class="card feature-card">
+      <div class="feature-icon" style="background: var(--color-trust-light); color: var(--color-trust);">D</div>
+      <h3>Documents</h3>
+      <p>Contrats, factures, documents RH et techniques — classés par catégorie, retrouvables en un instant.</p>
     </div>
 
-    <div id="form-alert" class="alert alert-danger" style="display:none;"></div>
+    <div class="card feature-card">
+      <div class="feature-icon" style="background: var(--color-amber-light); color: var(--color-amber-dark);">P</div>
+      <h3>Procédures</h3>
+      <p>Vos méthodes de travail écrites noir sur blanc : objectif, responsable, étapes — consultables par toute l'équipe autorisée.</p>
+    </div>
 
-    <form id="form-login" class="is-active form-enter" novalidate>
-      <div class="field" id="login-email-field">
-        <label for="login-email">Adresse e-mail</label>
-        <input type="email" id="login-email" placeholder="nom@entreprise.com" autocomplete="email">
-        <span class="field-error">Entrez une adresse e-mail valide.</span>
-      </div>
+    <div class="card feature-card">
+      <div class="feature-icon" style="background: var(--color-success-bg); color: var(--color-success);">C</div>
+      <h3>Connaissances</h3>
+      <p>Rôles, contacts utiles, savoir-faire interne — pour que rien ne se perde quand un employé quitte l'entreprise.</p>
+    </div>
 
-      <div class="field password-field" id="login-password-field">
-        <label for="login-password">Mot de passe</label>
-        <input type="password" id="login-password" placeholder="Votre mot de passe" autocomplete="current-password">
-        <button type="button" class="password-toggle" onclick="togglePassword('login-password', this)">Afficher</button>
-        <span class="field-error">Entrez votre mot de passe.</span>
-      </div>
-
-      <div class="auth-meta">
-        <label><input type="checkbox" id="login-remember"> Se souvenir de moi</label>
-        <a href="#">Mot de passe oublié ?</a>
-      </div>
-
-      <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
-    </form>
-
-    <form id="form-signup" novalidate>
-      <div class="field-row">
-        <div class="field" id="signup-firstname-field">
-          <label for="signup-firstname">Prénom</label>
-          <input type="text" id="signup-firstname" placeholder="Ex : Aïcha" autocomplete="given-name">
-          <span class="field-error">Champ requis.</span>
-        </div>
-        <div class="field" id="signup-lastname-field">
-          <label for="signup-lastname">Nom</label>
-          <input type="text" id="signup-lastname" placeholder="Ex : Moussavou" autocomplete="family-name">
-          <span class="field-error">Champ requis.</span>
-        </div>
-      </div>
-
-      <div class="field" id="signup-company-field">
-        <label for="signup-company">Nom de l'entreprise</label>
-        <input type="text" id="signup-company" placeholder="Ex : Établissement Moussavou" autocomplete="organization">
-        <span class="field-error">Champ requis.</span>
-      </div>
-
-      <div class="field" id="signup-email-field">
-        <label for="signup-email">Adresse e-mail</label>
-        <input type="email" id="signup-email" placeholder="nom@entreprise.com" autocomplete="email">
-        <span class="field-error">Entrez une adresse e-mail valide.</span>
-      </div>
-
-      <div class="field password-field" id="signup-password-field">
-        <label for="signup-password">Mot de passe</label>
-        <input type="password" id="signup-password" placeholder="8 caractères minimum" autocomplete="new-password">
-        <button type="button" class="password-toggle" onclick="togglePassword('signup-password', this)">Afficher</button>
-        <span class="field-error">8 caractères minimum.</span>
-      </div>
-
-      <button type="submit" class="btn btn-primary btn-block">Créer mon compte</button>
-    </form>
+    <div class="card feature-card">
+      <div class="feature-icon" style="background: var(--color-surface-muted); color: var(--color-ink);">M</div>
+      <h3>Modèles</h3>
+      <p>Des documents types réutilisables, prêts à être remplis, pour gagner du temps sur les tâches répétitives.</p>
+    </div>
 
   </div>
+</section>
 
-  <p class="auth-footer fade-in-up-delay">Un produit Ognandji Labs · En continuant, vous acceptez nos conditions d'utilisation.</p>
+<section class="steps">
+  <div class="steps-heading">
+    <h2>Trois étapes, rien de plus</h2>
+    <p>Pas besoin de formation pour commencer à utiliser Ognandji Docs.</p>
+  </div>
+  <div class="steps-grid">
+    <div class="step">
+      <div class="step-number">1</div>
+      <h3>Créez votre espace</h3>
+      <p>Un compte, une entreprise, un espace privé rien qu'à vous.</p>
+    </div>
+    <div class="step">
+      <div class="step-number">2</div>
+      <h3>Organisez vos contenus</h3>
+      <p>Déposez vos documents, rédigez vos procédures, structurez vos catégories.</p>
+    </div>
+    <div class="step">
+      <div class="step-number">3</div>
+      <h3>Donnez accès à l'équipe</h3>
+      <p>Chaque personne voit uniquement ce qui la concerne, en toute sécurité.</p>
+    </div>
+  </div>
+</section>
 
-</div>
+<section class="final-cta">
+  <h2>Prêt à organiser votre entreprise ?</h2>
+  <p>Créez votre espace en quelques minutes — aucune carte bancaire requise pour commencer.</p>
+  <a href="login.html?tab=signup" class="btn btn-primary">Créer mon espace gratuitement</a>
+</section>
 
-<script src="auth.js"></script>
+<footer class="landing-footer">
+  Un produit Ognandji Labs
+</footer>
+
 </body>
 </html>
