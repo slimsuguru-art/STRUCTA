@@ -51,6 +51,13 @@ function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+document.addEventListener('DOMContentLoaded', function () {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('tab') === 'signup') {
+    switchTab('signup');
+  }
+});
+
 document.getElementById('form-login').addEventListener('submit', function (event) {
   event.preventDefault();
   hideAlert();
