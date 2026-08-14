@@ -21,33 +21,22 @@
       var(--color-bg);
   }
 
-  .stamp-decor {
+  .atom-decor {
     position: fixed;
-    top: -140px;
-    right: -140px;
-    width: 420px;
-    height: 420px;
-    border-radius: 50%;
-    border: 1.5px solid rgba(22,40,61,0.06);
-    animation: slowSpin 120s linear infinite;
+    top: 50%;
+    left: 50%;
+    width: 720px;
+    height: 720px;
+    transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 0;
+    opacity: 0.55;
   }
 
-  .stamp-decor::before {
-    content: '';
-    position: absolute;
-    inset: 40px;
-    border-radius: 50%;
-    border: 1.5px solid rgba(22,40,61,0.06);
-  }
-
-  .stamp-decor::after {
-    content: '';
-    position: absolute;
-    inset: 80px;
-    border-radius: 50%;
-    border: 1px dashed rgba(22,40,61,0.08);
+  .atom-decor svg {
+    width: 100%;
+    height: 100%;
+    display: block;
   }
 
   .auth-center {
@@ -166,15 +155,35 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .fade-in-up, .fade-in-up-delay, .form-enter, .tab.is-active, .stamp-decor {
+    .fade-in-up, .fade-in-up-delay, .form-enter, .tab.is-active {
       animation: none !important;
+    }
+    .atom-decor circle,
+    .atom-decor animateMotion {
+      display: none;
     }
   }
 </style>
 </head>
 <body>
 
-<div class="stamp-decor" aria-hidden="true"></div>
+<div class="atom-decor" aria-hidden="true">
+  <svg viewBox="0 0 720 720">
+    <ellipse cx="360" cy="360" rx="300" ry="118" fill="none" stroke="#2E6E8E" stroke-width="1" opacity="0.16" transform="rotate(0 360 360)"/>
+    <ellipse cx="360" cy="360" rx="300" ry="118" fill="none" stroke="#C87F3F" stroke-width="1" opacity="0.14" transform="rotate(60 360 360)"/>
+    <ellipse cx="360" cy="360" rx="300" ry="118" fill="none" stroke="#16283D" stroke-width="1" opacity="0.10" transform="rotate(120 360 360)"/>
+    <circle cx="360" cy="360" r="5" fill="#16283D" opacity="0.35"/>
+    <circle r="4" fill="#2E6E8E" opacity="0.6">
+      <animateMotion dur="22s" repeatCount="indefinite" path="M360,360 m-300,0 a300,118 0 1,0 600,0 a300,118 0 1,0 -600,0"/>
+    </circle>
+    <circle r="3.5" fill="#C87F3F" opacity="0.55">
+      <animateMotion dur="28s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear" path="M360,360 m-300,0 a300,118 0 1,0 600,0 a300,118 0 1,0 -600,0"/>
+    </circle>
+    <circle r="3.5" fill="#16283D" opacity="0.4">
+      <animateMotion dur="34s" repeatCount="indefinite" path="M360,360 m-300,0 a300,118 0 1,0 600,0 a300,118 0 1,0 -600,0"/>
+    </circle>
+  </svg>
+</div>
 
 <div class="auth-center">
 
