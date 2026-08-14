@@ -1,9 +1,14 @@
 /* ============================================================
-   OGNANDJI DOCS — script unique
-   Sections : Utilitaires UI (toasts/modale) · Connexion/Inscription · Tableau de bord
-   Chaque section vérifie la présence des éléments avant d'agir,
-   pour pouvoir être chargée telle quelle sur n'importe quelle page.
+   STRUCTA — script unique
+   Sections : Supabase · Utilitaires UI · Connexion/Inscription · Tableau de bord
    ============================================================ */
+
+
+/* ========== SUPABASE ========== */
+
+const SUPABASE_URL = 'https://gefpajwfodgyxqxwxofr.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlZnBhandmb2RneXhxeHd4b2ZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3Mjk1MTIsImV4cCI6MjEwMjMwNTUxMn0.3I55EB7sqhr70mgPi6N0fVR8BXp5mdlJVnqtFfDCg64';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 
 /* ========== UTILITAIRES UI (toasts, confirmation) ========== */
@@ -156,13 +161,30 @@ function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-function initAuthPage() {
+function setButtonLoading(button, isLoading, loadingLabel) {
+  if (isLoading) {
+    button.dataset.originalLabel = button.textContent;
+    button.textContent = loadingLabel || 'Chargement...';
+    button.disabled = true;
+  } else {
+    button.textContent = button.dataset.originalLabel || button.textContent;
+    button.disabled = false;
+  }
+}
+
+async function initAuthPage() {
   const loginForm = document.getElementById('form-login');
   const signupForm = document.getElementById('form-signup');
-  if (!loginForm && !signupForm) return; // on n'est pas sur la page de connexion
+  if (!loginForm && !signupForm) return; // pas sur la page de connexion
+
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) {
+    window.location.href = 'dashboard.html';
+    return;
+  }
 
   if (loginForm) {
-    loginForm.addEventListener('submit', function (event) {
+    loginForm.addEventListener('submit', async function (event) {
       event.preventDefault();
       hideAlert();
 
@@ -186,15 +208,38 @@ function initAuthPage() {
 
       if (hasError) return;
 
-      // Point d'intégration Supabase Auth (signInWithPassword) à brancher ici.
-      showToast('Connexion : intégration Supabase à venir.', 'info');
+      const submitBtn = loginForm.querySelector('button[type="submit"]');
+      setButtonLoading(submitBtn, true, 'Connexion...');
+
+      const { error } = await supabaseClient.auth.signInWithPassword({
+        email: email.value,
+        password: password.value
+      });
+
+      setButtonLoading(submitBtn, false);
+
+      if (error) {
+        showAlert(error.message === 'Invalid login credentials'
+          ? 'E-mail ou mot de passe incorrect.'
+          : error.message);
+        return;
+      }
+
+      showToast('Connexion réussie.', 'success');
+      window.location.href = 'dashboard.html';
     });
   }
 
   if (signupForm) {
-    signupForm.addEventListener('submit', function (event) {
+    signupForm.addEventListener('submit', async function (event) {
       event.preventDefault();
       hideAlert();
+
+      const firstNameEl = document.getElementById('signup-firstname');
+      const lastNameEl = document.getElementById('signup-lastname');
+      const companyEl = document.getElementById('signup-company');
+      const emailEl = document.getElementById('signup-email');
+      const passwordEl = document.getElementById('signup-password');
 
       const fields = [
         { id: 'signup-firstname', field: 'signup-firstname-field', check: v => v.trim().length > 0 },
@@ -218,8 +263,62 @@ function initAuthPage() {
 
       if (hasError) return;
 
-      // Point d'intégration Supabase Auth (signUp) + création de l'espace entreprise à brancher ici.
-      showToast('Création de compte : intégration Supabase à venir.', 'info');
+      const submitBtn = signupForm.querySelector('button[type="submit"]');
+      setButtonLoading(submitBtn, true, 'Création...');
+
+      const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
+        email: emailEl.value,
+        password: passwordEl.value
+      });
+
+      if (signUpError) {
+        setButtonLoading(submitBtn, false);
+        showAlert(signUpError.message === 'User already registered'
+          ? 'Un compte existe déjà avec cet e-mail.'
+          : signUpError.message);
+        return;
+      }
+
+      if (!signUpData.session) {
+        setButtonLoading(submitBtn, false);
+        showToast("Vérifiez votre boîte mail pour confirmer votre compte, puis connectez-vous.", 'info');
+        switchTab('login');
+        return;
+      }
+
+      const userId = signUpData.user.id;
+
+      const { data: companyData, error: companyError } = await supabaseClient
+        .from('companies')
+        .insert({ name: companyEl.value.trim(), owner_id: userId })
+        .select()
+        .single();
+
+      if (companyError) {
+        setButtonLoading(submitBtn, false);
+        showAlert("Compte créé, mais la création de l'espace entreprise a échoué : " + companyError.message);
+        return;
+      }
+
+      const { error: memberError } = await supabaseClient
+        .from('company_members')
+        .insert({
+          company_id: companyData.id,
+          user_id: userId,
+          first_name: firstNameEl.value.trim(),
+          last_name: lastNameEl.value.trim(),
+          role: 'admin'
+        });
+
+      setButtonLoading(submitBtn, false);
+
+      if (memberError) {
+        showAlert("Espace créé, mais une erreur est survenue : " + memberError.message);
+        return;
+      }
+
+      showToast('Bienvenue sur STRUCTA !', 'success');
+      window.location.href = 'dashboard.html';
     });
   }
 
@@ -232,13 +331,11 @@ function initAuthPage() {
 
 /* ========== PAGE TABLEAU DE BORD ========== */
 
-// Point d'intégration Supabase : remplacer ce tableau par une vraie
-// requête sur la table d'activité de l'entreprise une fois connecté.
-const recentActivity = [];
-
 function renderActivity() {
   const list = document.getElementById('activity-list');
-  if (!list) return; // on n'est pas sur le dashboard
+  if (!list) return;
+
+  const recentActivity = [];
 
   if (recentActivity.length === 0) {
     list.innerHTML = `
@@ -254,21 +351,13 @@ function renderActivity() {
     `;
     return;
   }
-
-  list.innerHTML = '';
-  recentActivity.forEach(function (item) {
-    const row = document.createElement('div');
-    row.className = 'activity-row';
-    row.innerHTML = `<span>${item.label}</span><span class="activity-time">${item.time}</span>`;
-    list.appendChild(row);
-  });
 }
 
 function dismissOnboarding() {
   const banner = document.getElementById('onboarding-banner');
   if (!banner) return;
   banner.style.display = 'none';
-  localStorage.setItem('ognandji_onboarding_dismissed', 'true');
+  localStorage.setItem('structa_onboarding_dismissed', 'true');
 }
 
 function handleQuickAction(type) {
@@ -280,13 +369,59 @@ function handleQuickAction(type) {
   showToast(messages[type] || "Bientôt disponible.", 'info');
 }
 
-function initDashboardPage() {
+async function handleLogout() {
+  await supabaseClient.auth.signOut();
+  window.location.href = 'index.html';
+}
+
+async function initDashboardPage() {
   const banner = document.getElementById('onboarding-banner');
-  if (!document.getElementById('activity-list') && !banner) return; // pas sur le dashboard
+  const statDocuments = document.getElementById('stat-documents');
+  if (!document.getElementById('activity-list') && !banner && !statDocuments) return;
+
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const userId = session.user.id;
+
+  const { data: membership, error: membershipError } = await supabaseClient
+    .from('company_members')
+    .select('company_id, first_name, role, companies ( name )')
+    .eq('user_id', userId)
+    .single();
+
+  if (membershipError || !membership) {
+    showToast("Impossible de charger votre espace entreprise.", 'error');
+    return;
+  }
+
+  const companyId = membership.company_id;
+  const subtitle = document.getElementById('dashboard-subtitle');
+  if (subtitle) {
+    subtitle.textContent = membership.companies.name + ' · ' + (membership.first_name || '');
+  }
+
+  const [documentsCount, proceduresCount, categoriesCount, membersCount] = await Promise.all([
+    supabaseClient.from('documents').select('id', { count: 'exact', head: true }).eq('company_id', companyId),
+    supabaseClient.from('procedures').select('id', { count: 'exact', head: true }).eq('company_id', companyId),
+    supabaseClient.from('document_categories').select('id', { count: 'exact', head: true }).eq('company_id', companyId),
+    supabaseClient.from('company_members').select('id', { count: 'exact', head: true }).eq('company_id', companyId)
+  ]);
+
+  if (statDocuments) statDocuments.textContent = documentsCount.count ?? 0;
+  const statProcedures = document.getElementById('stat-procedures');
+  const statCategories = document.getElementById('stat-categories');
+  const statMembers = document.getElementById('stat-members');
+  if (statProcedures) statProcedures.textContent = proceduresCount.count ?? 0;
+  if (statCategories) statCategories.textContent = categoriesCount.count ?? 0;
+  if (statMembers) statMembers.textContent = membersCount.count ?? 1;
 
   renderActivity();
 
-  if (banner && localStorage.getItem('ognandji_onboarding_dismissed') === 'true') {
+  if (banner && localStorage.getItem('structa_onboarding_dismissed') === 'true') {
     banner.style.display = 'none';
   }
 }
