@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ognandji Docs — Connexion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="components.css">
+<link rel="stylesheet" href="auth.css">
+</head>
+<body>
+
+<div class="atom-decor" aria-hidden="true">
+  <svg viewBox="0 0 720 720">
+    <ellipse cx="360" cy="360" rx="300" ry="118" fill="none" stroke="#2E6E8E" stroke-width="1" opacity="0.16" transform="rotate(0 360 360)"/>
+    <ellipse cx="360" cy="360" rx="300" ry="118" fill="none" stroke="#C87F3F" stroke-width="1" opacity="0.14" transform="rotate(60 360 360)"/>
+    <ellipse cx="360" cy="360" rx="300" ry="118" fill="none" stroke="#16283D" stroke-width="1" opacity="0.10" transform="rotate(120 360 360)"/>
+    <circle cx="360" cy="360" r="5" fill="#16283D" opacity="0.35"/>
+    <circle r="4" fill="#2E6E8E" opacity="0.6">
+      <animateMotion dur="22s" repeatCount="indefinite" path="M360,360 m-300,0 a300,118 0 1,0 600,0 a300,118 0 1,0 -600,0"/>
+    </circle>
+    <circle r="3.5" fill="#C87F3F" opacity="0.55">
+      <animateMotion dur="28s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear" path="M360,360 m-300,0 a300,118 0 1,0 600,0 a300,118 0 1,0 -600,0"/>
+    </circle>
+    <circle r="3.5" fill="#16283D" opacity="0.4">
+      <animateMotion dur="34s" repeatCount="indefinite" path="M360,360 m-300,0 a300,118 0 1,0 600,0 a300,118 0 1,0 -600,0"/>
+    </circle>
+  </svg>
+</div>
+
+<div class="auth-center">
+
+  <div class="auth-header fade-in-up">
+    <a href="index.html" class="brand-mark" style="text-decoration:none;">Ognandji Docs</a>
+    <h1>Bienvenue</h1>
+    <p>La documentation de votre entreprise, centralisée et sécurisée dans un espace privé.</p>
+  </div>
+
+  <div class="auth-card fade-in-up-delay">
+
+    <div class="tabs" role="tablist">
+      <button class="tab is-active" id="tab-login" role="tab" aria-selected="true" onclick="switchTab('login')">Connexion</button>
+      <button class="tab" id="tab-signup" role="tab" aria-selected="false" onclick="switchTab('signup')">Créer un compte</button>
+    </div>
+
+    <div id="form-alert" class="alert alert-danger" style="display:none;"></div>
+
+    <form id="form-login" class="is-active form-enter" novalidate>
+      <div class="field" id="login-email-field">
+        <label for="login-email">Adresse e-mail</label>
+        <input type="email" id="login-email" placeholder="nom@entreprise.com" autocomplete="email">
+        <span class="field-error">Entrez une adresse e-mail valide.</span>
+      </div>
+
+      <div class="field password-field" id="login-password-field">
+        <label for="login-password">Mot de passe</label>
+        <input type="password" id="login-password" placeholder="Votre mot de passe" autocomplete="current-password">
+        <button type="button" class="password-toggle" onclick="togglePassword('login-password', this)">Afficher</button>
+        <span class="field-error">Entrez votre mot de passe.</span>
+      </div>
+
+      <div class="auth-meta">
+        <label><input type="checkbox" id="login-remember"> Se souvenir de moi</label>
+        <a href="#">Mot de passe oublié ?</a>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
+    </form>
+
+    <form id="form-signup" novalidate>
+      <div class="field-row">
+        <div class="field" id="signup-firstname-field">
+          <label for="signup-firstname">Prénom</label>
+          <input type="text" id="signup-firstname" placeholder="Ex : Aïcha" autocomplete="given-name">
+          <span class="field-error">Champ requis.</span>
+        </div>
+        <div class="field" id="signup-lastname-field">
+          <label for="signup-lastname">Nom</label>
+          <input type="text" id="signup-lastname" placeholder="Ex : Moussavou" autocomplete="family-name">
+          <span class="field-error">Champ requis.</span>
+        </div>
+      </div>
+
+      <div class="field" id="signup-company-field">
+        <label for="signup-company">Nom de l'entreprise</label>
+        <input type="text" id="signup-company" placeholder="Ex : Établissement Moussavou" autocomplete="organization">
+        <span class="field-error">Champ requis.</span>
+      </div>
+
+      <div class="field" id="signup-email-field">
+        <label for="signup-email">Adresse e-mail</label>
+        <input type="email" id="signup-email" placeholder="nom@entreprise.com" autocomplete="email">
+        <span class="field-error">Entrez une adresse e-mail valide.</span>
+      </div>
+
+      <div class="field password-field" id="signup-password-field">
+        <label for="signup-password">Mot de passe</label>
+        <input type="password" id="signup-password" placeholder="8 caractères minimum" autocomplete="new-password">
+        <button type="button" class="password-toggle" onclick="togglePassword('signup-password', this)">Afficher</button>
+        <span class="field-error">8 caractères minimum.</span>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Créer mon compte</button>
+    </form>
+
+  </div>
+
+  <p class="auth-footer fade-in-up-delay">Un produit Ognandji Labs · En continuant, vous acceptez nos conditions d'utilisation.</p>
+
+</div>
+
+<script src="auth.js"></script>
+</body>
+</html>
