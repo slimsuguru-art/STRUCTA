@@ -4,18 +4,21 @@
    ============================================================ */
 
 /* ========== TOKENS ========== */
-/* Ognandji Docs — design tokens */
+/* STRUCTA — design tokens */
 
 :root {
   /* Couleurs — marque */
-  --color-ink: #16283D;
-  --color-ink-soft: #2A3F58;
-  --color-trust: #2E6E8E;
-  --color-trust-dark: #24576F;
-  --color-trust-light: #E4EEF2;
-  --color-amber: #C87F3F;
-  --color-amber-dark: #A6672E;
-  --color-amber-light: #FBEEDF;
+  --color-ink: #14212F;
+  --color-ink-soft: #26374A;
+  --color-trust: #3E63DD;
+  --color-trust-dark: #2F4FBD;
+  --color-trust-light: #E8EDFC;
+  --color-violet: #7C5CFC;
+  --color-violet-dark: #6743E0;
+  --color-violet-light: #F0ECFE;
+  --color-amber: #E08A3C;
+  --color-amber-dark: #B5691F;
+  --color-amber-light: #FDEEDD;
 
   /* Couleurs — neutres */
   --color-bg: #F7F8F7;
@@ -25,7 +28,7 @@
   --color-border-strong: #C9CCC9;
 
   /* Texte */
-  --color-text-primary: #16283D;
+  --color-text-primary: #14212F;
   --color-text-secondary: #5B6B7A;
   --color-text-muted: #8B978F;
   --color-text-on-trust: #FFFFFF;
@@ -40,8 +43,8 @@
   --color-warning-bg: #FBEEDF;
 
   /* Typographie */
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-body: 'IBM Plex Sans', -apple-system, Segoe UI, sans-serif;
+  --font-display: 'Space Grotesk', -apple-system, sans-serif;
+  --font-body: 'Inter', -apple-system, Segoe UI, sans-serif;
   --font-mono: 'IBM Plex Mono', Consolas, monospace;
 
   --fs-xs: 0.75rem;
@@ -63,12 +66,12 @@
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
-  --shadow-card: 0 1px 2px rgba(22, 40, 61, 0.06), 0 2px 8px rgba(22, 40, 61, 0.04);
-  --shadow-focus: 0 0 0 3px rgba(46, 110, 142, 0.18);
+  --shadow-card: 0 1px 2px rgba(20, 33, 47, 0.06), 0 2px 8px rgba(20, 33, 47, 0.04);
+  --shadow-focus: 0 0 0 3px rgba(62, 99, 221, 0.22);
 }
 
 /* ========== BASE ========== */
-/* Ognandji Docs — base */
+/* STRUCTA — base */
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -137,7 +140,7 @@ img, svg {
 }
 
 /* ========== COMPOSANTS PARTAGÉS ========== */
-/* Ognandji Docs — composants */
+/* STRUCTA — composants */
 
 .btn {
   display: inline-flex;
@@ -159,12 +162,14 @@ img, svg {
 }
 
 .btn-primary {
-  background: var(--color-trust);
+  background: linear-gradient(135deg, var(--color-trust), var(--color-violet));
   color: var(--color-text-on-trust);
+  box-shadow: 0 2px 10px rgba(124, 92, 252, 0.22);
 }
 
 .btn-primary:hover {
-  background: var(--color-trust-dark);
+  background: linear-gradient(135deg, var(--color-trust-dark), var(--color-violet-dark));
+  box-shadow: 0 6px 20px rgba(124, 92, 252, 0.38);
 }
 
 .btn-secondary {
@@ -361,16 +366,25 @@ img, svg {
 }
 
 .btn-primary {
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  transition: background 0.2s ease, border-color 0.15s ease, transform 0.15s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(46, 110, 142, 0.28);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(124, 92, 252, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.btn-secondary {
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
 
 .btn-secondary:hover {
   transform: translateY(-1px);
+  border-color: var(--color-trust);
 }
 
 .tab {
@@ -405,7 +419,7 @@ img, svg {
   padding: 0.85rem 1rem;
   border-radius: var(--radius-md);
   font-size: var(--fs-sm);
-  box-shadow: 0 8px 24px rgba(22, 40, 61, 0.22);
+  box-shadow: 0 8px 24px rgba(20, 33, 47, 0.22);
   animation: toastIn 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -446,7 +460,7 @@ img, svg {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(22, 40, 61, 0.45);
+  background: rgba(20, 33, 47, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -467,7 +481,7 @@ img, svg {
   padding: var(--space-lg);
   max-width: 380px;
   width: calc(100% - 2rem);
-  box-shadow: 0 20px 50px rgba(22, 40, 61, 0.25);
+  box-shadow: 0 20px 50px rgba(20, 33, 47, 0.25);
   transform: translateY(10px) scale(0.98);
   transition: transform 0.2s ease;
 }
@@ -625,7 +639,7 @@ img, svg {
 }
 
 /* ========== PAGE ACCUEIL ========== */
-/* Ognandji Docs — page d'accueil */
+/* STRUCTA — page d'accueil */
 
 body.landing {
   background: var(--color-bg);
@@ -741,7 +755,7 @@ body.landing {
 
 .feature-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(22, 40, 61, 0.08);
+  box-shadow: 0 8px 24px rgba(20, 33, 47, 0.08);
 }
 
 .feature-icon {
@@ -855,15 +869,15 @@ body.landing {
 }
 
 /* ========== PAGE CONNEXION / INSCRIPTION ========== */
-/* Ognandji Docs — page Connexion / Inscription */
+/* STRUCTA — page Connexion / Inscription */
 
 body {
   position: relative;
   min-height: 100vh;
   overflow-x: hidden;
   background:
-    radial-gradient(ellipse 900px 500px at 50% -10%, rgba(46,110,142,0.10), transparent 65%),
-    radial-gradient(circle, rgba(22,40,61,0.06) 1px, transparent 1px) 0 0 / 22px 22px,
+    radial-gradient(ellipse 900px 500px at 50% -10%, rgba(62,99,221,0.10), transparent 65%),
+    radial-gradient(circle, rgba(20,33,47,0.06) 1px, transparent 1px) 0 0 / 22px 22px,
     var(--color-bg);
 }
 
@@ -1011,7 +1025,7 @@ body {
 }
 
 /* ========== PAGE TABLEAU DE BORD ========== */
-/* Ognandji Docs — tableau de bord */
+/* STRUCTA — tableau de bord */
 
 body.app {
   background: var(--color-bg);
