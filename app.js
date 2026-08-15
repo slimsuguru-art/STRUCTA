@@ -100,6 +100,27 @@ function confirmAction(options) {
 }
 
 
+function hidePageLoader() {
+  const loader = document.getElementById('page-loader');
+  if (loader) loader.classList.add('is-hidden');
+}
+
+
+function openSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (sidebar) sidebar.classList.add('is-open');
+  if (backdrop) backdrop.classList.add('is-open');
+}
+
+function closeSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (sidebar) sidebar.classList.remove('is-open');
+  if (backdrop) backdrop.classList.remove('is-open');
+}
+
+
 /* ========== PAGE CONNEXION / INSCRIPTION ========== */
 
 function switchTab(target) {
@@ -182,6 +203,7 @@ async function initAuthPage() {
     window.location.href = 'dashboard.html';
     return;
   }
+  hidePageLoader();
 
   if (loginForm) {
     loginForm.addEventListener('submit', async function (event) {
@@ -410,6 +432,7 @@ async function initDashboardPage() {
     .single();
 
   if (membershipError || !membership) {
+    hidePageLoader();
     showToast("Impossible de charger votre espace entreprise.", 'error');
     return;
   }
@@ -440,6 +463,8 @@ async function initDashboardPage() {
   if (banner && localStorage.getItem('structa_onboarding_dismissed') === 'true') {
     banner.style.display = 'none';
   }
+
+  hidePageLoader();
 }
 
 
@@ -625,6 +650,7 @@ async function initDocumentsPage() {
     .single();
 
   if (membershipError || !membership) {
+    hidePageLoader();
     showToast("Impossible de charger votre espace entreprise.", 'error');
     return;
   }
@@ -643,6 +669,8 @@ async function initDocumentsPage() {
   }
 
   document.getElementById('documents-search-input').addEventListener('input', renderDocuments);
+
+  hidePageLoader();
 
   document.getElementById('category-form').addEventListener('submit', async function (event) {
     event.preventDefault();
@@ -903,6 +931,7 @@ async function initProceduresPage() {
     .single();
 
   if (membershipError || !membership) {
+    hidePageLoader();
     showToast("Impossible de charger votre espace entreprise.", 'error');
     return;
   }
@@ -916,6 +945,8 @@ async function initProceduresPage() {
   if (params.get('action') === 'add') openProcedureFormModal();
 
   document.getElementById('procedures-search-input').addEventListener('input', renderProcedures);
+
+  hidePageLoader();
 
   document.getElementById('procedure-form').addEventListener('submit', async function (event) {
     event.preventDefault();
@@ -1132,6 +1163,7 @@ async function initKnowledgePage() {
     .single();
 
   if (membershipError || !membership) {
+    hidePageLoader();
     showToast("Impossible de charger votre espace entreprise.", 'error');
     return;
   }
@@ -1142,6 +1174,8 @@ async function initKnowledgePage() {
   await loadKnowledgeData();
 
   document.getElementById('knowledge-search-input').addEventListener('input', renderKnowledge);
+
+  hidePageLoader();
 
   document.getElementById('knowledge-form').addEventListener('submit', async function (event) {
     event.preventDefault();
