@@ -310,12 +310,22 @@ async function initAuthPage() {
           role: 'admin'
         });
 
-      setButtonLoading(submitBtn, false);
-
       if (memberError) {
+        setButtonLoading(submitBtn, false);
         showAlert("Espace créé, mais une erreur est survenue : " + memberError.message);
         return;
       }
+
+      // Catégories par défaut, conformes au cahier des charges.
+      const defaultCategories = [
+        'Contrats', 'Documents administratifs', 'Rapports', 'Factures',
+        'Modèles', 'Documents RH', 'Documents techniques', 'Autres fichiers importants'
+      ];
+      await supabaseClient
+        .from('document_categories')
+        .insert(defaultCategories.map(name => ({ company_id: companyData.id, name })));
+
+      setButtonLoading(submitBtn, false);
 
       showToast('Bienvenue sur STRUCTA !', 'success');
       window.location.href = 'dashboard.html';
