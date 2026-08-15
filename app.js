@@ -361,12 +361,15 @@ function dismissOnboarding() {
 }
 
 function handleQuickAction(type) {
-  const messages = {
-    categorie: "La création de catégories arrive dans la prochaine étape.",
-    document: "L'ajout de documents arrive dans la prochaine étape.",
-    procedure: "La création de procédures arrive dans la prochaine étape."
-  };
-  showToast(messages[type] || "Bientôt disponible.", 'info');
+  if (type === 'categorie') {
+    window.location.href = 'documents.html?action=add-category';
+    return;
+  }
+  if (type === 'document') {
+    window.location.href = 'documents.html?action=add-document';
+    return;
+  }
+  showToast("La création de procédures arrive dans la prochaine étape.", 'info');
 }
 
 async function handleLogout() {
@@ -427,9 +430,309 @@ async function initDashboardPage() {
 }
 
 
+/* ========== PAGE DOCUMENTS ========== */
+
+let docsCompanyId = null;
+let docsRole = null;
+let allCategories = [];
+let allDocuments = [];
+let activeCategoryFilter = null;
+
+function openModalById(id) {
+  const overlay = document.getElementById(id);
+  if (!overlay) return;
+  requestAnimationFrame(function () { overlay.classList.add('is-open'); });
+}
+
+function closeModalById(id) {
+  const overlay = document.getElementById(id);
+  if (!overlay) return;
+  overlay.classList.remove('is-open');
+}
+
+function openCategoryModal() {
+  document.getElementById('category-form').reset();
+  clearFieldError('category-name-field');
+  openModalById('category-modal');
+}
+
+function openDocumentModal() {
+  const form = document.getElementById('document-form');
+  form.reset();
+  clearFieldError('document-name-field');
+  clearFieldError('document-file-field');
+
+  const select = document.getElementById('document-category');
+  select.innerHTML = '<option value="">Sans catégorie</option>' +
+    allCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+  const dropLabel = document.getElementById('file-drop-label');
+  dropLabel.textContent = 'Cliquez pour choisir un fichier';
+  dropLabel.classList.remove('has-file');
+
+  openModalById('document-modal');
+}
+
+function renderCategories() {
+  const strip = document.getElementById('category-strip');
+  if (!strip) return;
+
+  let html = `<span class="category-chip ${activeCategoryFilter === null ? 'is-active' : ''}" onclick="setCategoryFilter(null)">Tous (${allDocuments.length})</span>`;
+
+  allCategories.forEach(function (cat) {
+    const count = allDocuments.filter(d => d.category_id === cat.id).length;
+    html += `<span class="category-chip ${activeCategoryFilter === cat.id ? 'is-active' : ''}" onclick="setCategoryFilter('${cat.id}')">${cat.name} (${count})</span>`;
+  });
+
+  html += `<span class="category-chip category-chip-add" onclick="openCategoryModal()">+ Nouvelle catégorie</span>`;
+
+  strip.innerHTML = html;
+}
+
+function setCategoryFilter(categoryId) {
+  activeCategoryFilter = categoryId;
+  renderCategories();
+  renderDocuments();
+}
+
+function formatDate(isoString) {
+  const date = new Date(isoString);
+  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function renderDocuments() {
+  const list = document.getElementById('doc-list');
+  if (!list) return;
+
+  const searchInput = document.getElementById('documents-search-input');
+  const searchTerm = (searchInput ? searchInput.value : '').trim().toLowerCase();
+
+  const filtered = allDocuments.filter(function (doc) {
+    const matchesCategory = activeCategoryFilter === null || doc.category_id === activeCategoryFilter;
+    const matchesSearch = !searchTerm || doc.name.toLowerCase().includes(searchTerm);
+    return matchesCategory && matchesSearch;
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="card empty-state">
+        <div class="empty-state-icon">▤</div>
+        <h3>Aucun document pour l'instant</h3>
+        <p>Ajoutez votre premier document — contrat, facture, document RH ou technique.</p>
+        <div class="empty-state-actions">
+          <button type="button" class="btn btn-primary" onclick="openDocumentModal()">Ajouter un document</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = filtered.map(function (doc) {
+    const categoryName = doc.category_id
+      ? (allCategories.find(c => c.id === doc.category_id)?.name || '')
+      : 'Sans catégorie';
+    const extension = (doc.name.split('.').pop() || '?').slice(0, 3).toUpperCase();
+    const deleteBtn = docsRole === 'admin'
+      ? `<button type="button" class="icon-btn icon-btn-danger" onclick="deleteDocument('${doc.id}', '${doc.file_path}')" aria-label="Supprimer">🗑</button>`
+      : '';
+
+    return `
+      <div class="doc-row">
+        <div class="doc-icon">${extension}</div>
+        <div class="doc-info">
+          <div class="doc-name">${doc.name}</div>
+          <div class="doc-meta"><span>${categoryName}</span><span>·</span><span>${formatDate(doc.created_at)}</span></div>
+        </div>
+        <div class="doc-actions">
+          <button type="button" class="icon-btn" onclick="downloadDocument('${doc.file_path}', '${doc.name.replace(/'/g, "\\'")}')" aria-label="Télécharger">⬇</button>
+          ${deleteBtn}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function loadDocumentsData() {
+  const [categoriesRes, documentsRes] = await Promise.all([
+    supabaseClient.from('document_categories').select('id, name').eq('company_id', docsCompanyId).order('name'),
+    supabaseClient.from('documents').select('id, name, file_path, category_id, created_at').eq('company_id', docsCompanyId).order('created_at', { ascending: false })
+  ]);
+
+  allCategories = categoriesRes.data || [];
+  allDocuments = documentsRes.data || [];
+
+  renderCategories();
+  renderDocuments();
+}
+
+async function downloadDocument(filePath, fileName) {
+  const { data, error } = await supabaseClient.storage.from('documents').createSignedUrl(filePath, 60);
+  if (error) {
+    showToast("Impossible d'ouvrir le document : " + error.message, 'error');
+    return;
+  }
+  window.open(data.signedUrl, '_blank');
+}
+
+function deleteDocument(id, filePath) {
+  confirmAction({
+    title: 'Supprimer ce document ?',
+    message: "Cette action est définitive. Le fichier et son entrée seront supprimés.",
+    confirmLabel: 'Supprimer',
+    danger: true,
+    onConfirm: async function () {
+      await supabaseClient.storage.from('documents').remove([filePath]);
+      const { error } = await supabaseClient.from('documents').delete().eq('id', id);
+      if (error) {
+        showToast('Suppression impossible : ' + error.message, 'error');
+        return;
+      }
+      showToast('Document supprimé.', 'success');
+      await loadDocumentsData();
+    }
+  });
+}
+
+async function initDocumentsPage() {
+  const list = document.getElementById('doc-list');
+  if (!list) return; // pas sur la page Documents
+
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const userId = session.user.id;
+
+  const { data: membership, error: membershipError } = await supabaseClient
+    .from('company_members')
+    .select('company_id, role')
+    .eq('user_id', userId)
+    .single();
+
+  if (membershipError || !membership) {
+    showToast("Impossible de charger votre espace entreprise.", 'error');
+    return;
+  }
+
+  docsCompanyId = membership.company_id;
+  docsRole = membership.role;
+
+  await loadDocumentsData();
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('action') === 'add-category') openCategoryModal();
+  if (params.get('action') === 'add-document') openDocumentModal();
+
+  document.getElementById('documents-search-input').addEventListener('input', renderDocuments);
+
+  document.getElementById('category-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    const nameInput = document.getElementById('category-name');
+
+    if (nameInput.value.trim().length === 0) {
+      showFieldError('category-name-field');
+      return;
+    }
+    clearFieldError('category-name-field');
+
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    setButtonLoading(submitBtn, true, 'Création...');
+
+    const { error } = await supabaseClient
+      .from('document_categories')
+      .insert({ company_id: docsCompanyId, name: nameInput.value.trim() });
+
+    setButtonLoading(submitBtn, false);
+
+    if (error) {
+      showToast('Erreur : ' + error.message, 'error');
+      return;
+    }
+
+    showToast('Catégorie créée.', 'success');
+    closeModalById('category-modal');
+    await loadDocumentsData();
+  });
+
+  document.getElementById('document-file').addEventListener('change', function (event) {
+    const dropLabel = document.getElementById('file-drop-label');
+    if (event.target.files.length > 0) {
+      dropLabel.textContent = event.target.files[0].name;
+      dropLabel.classList.add('has-file');
+      clearFieldError('document-file-field');
+    }
+  });
+
+  document.getElementById('document-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    const nameInput = document.getElementById('document-name');
+    const categorySelect = document.getElementById('document-category');
+    const fileInput = document.getElementById('document-file');
+
+    let hasError = false;
+    if (nameInput.value.trim().length === 0) {
+      showFieldError('document-name-field');
+      hasError = true;
+    } else {
+      clearFieldError('document-name-field');
+    }
+    if (fileInput.files.length === 0) {
+      showFieldError('document-file-field');
+      hasError = true;
+    } else {
+      clearFieldError('document-file-field');
+    }
+    if (hasError) return;
+
+    const file = fileInput.files[0];
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    setButtonLoading(submitBtn, true, 'Envoi...');
+
+    const filePath = `${docsCompanyId}/${crypto.randomUUID()}-${file.name}`;
+
+    const { error: uploadError } = await supabaseClient.storage
+      .from('documents')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      setButtonLoading(submitBtn, false);
+      showToast("Échec de l'envoi : " + uploadError.message, 'error');
+      return;
+    }
+
+    const { data: { session: currentSession } } = await supabaseClient.auth.getSession();
+
+    const { error: insertError } = await supabaseClient
+      .from('documents')
+      .insert({
+        company_id: docsCompanyId,
+        category_id: categorySelect.value || null,
+        name: nameInput.value.trim(),
+        file_path: filePath,
+        uploaded_by: currentSession.user.id
+      });
+
+    setButtonLoading(submitBtn, false);
+
+    if (insertError) {
+      showToast('Fichier envoyé, mais erreur d\'enregistrement : ' + insertError.message, 'error');
+      return;
+    }
+
+    showToast('Document ajouté.', 'success');
+    closeModalById('document-modal');
+    await loadDocumentsData();
+  });
+}
+
+
 /* ========== INITIALISATION GÉNÉRALE ========== */
 
 document.addEventListener('DOMContentLoaded', function () {
   initAuthPage();
   initDashboardPage();
+  initDocumentsPage();
 });
