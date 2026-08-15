@@ -379,7 +379,10 @@ function handleQuickAction(type) {
     window.location.href = 'documents.html?action=add-document';
     return;
   }
-  showToast("La création de procédures arrive dans la prochaine étape.", 'info');
+  if (type === 'procedure') {
+    window.location.href = 'procedures.html?action=add';
+    return;
+  }
 }
 
 async function handleLogout() {
@@ -634,6 +637,10 @@ async function initDocumentsPage() {
   const params = new URLSearchParams(window.location.search);
   if (params.get('action') === 'add-category') openCategoryModal();
   if (params.get('action') === 'add-document') openDocumentModal();
+  if (params.get('category')) {
+    const match = allCategories.find(c => c.name === params.get('category'));
+    if (match) setCategoryFilter(match.id);
+  }
 
   document.getElementById('documents-search-input').addEventListener('input', renderDocuments);
 
@@ -739,10 +746,453 @@ async function initDocumentsPage() {
 }
 
 
+/* ========== PAGE PROCEDURES ========== */
+
+let procCompanyId = null;
+let procRole = null;
+let allProcedures = [];
+let editingProcedureId = null;
+
+function openProcedureFormModal(procedure) {
+  const form = document.getElementById('procedure-form');
+  form.reset();
+  ['procedure-title-field', 'procedure-steps-field'].forEach(clearFieldError);
+
+  editingProcedureId = procedure ? procedure.id : null;
+  document.getElementById('procedure-form-title').textContent = procedure ? 'Modifier la procédure' : 'Nouvelle procédure';
+  document.getElementById('procedure-form-submit').textContent = procedure ? 'Enregistrer' : 'Créer';
+
+  if (procedure) {
+    document.getElementById('procedure-title').value = procedure.title || '';
+    document.getElementById('procedure-objective').value = procedure.objective || '';
+    document.getElementById('procedure-responsible').value = procedure.responsible || '';
+    document.getElementById('procedure-documents').value = procedure.documents_needed || '';
+    document.getElementById('procedure-steps').value = (procedure.steps || []).join('\n');
+    document.getElementById('procedure-info').value = procedure.additional_info || '';
+  }
+
+  closeModalById('procedure-view-modal');
+  openModalById('procedure-form-modal');
+}
+
+function formatDateShort(isoString) {
+  return new Date(isoString).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function renderProcedures() {
+  const list = document.getElementById('proc-list');
+  if (!list) return;
+
+  const searchInput = document.getElementById('procedures-search-input');
+  const searchTerm = (searchInput ? searchInput.value : '').trim().toLowerCase();
+
+  const filtered = allProcedures.filter(p => !searchTerm || p.title.toLowerCase().includes(searchTerm));
+
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="card empty-state">
+        <div class="empty-state-icon">☑</div>
+        <h3>Aucune procédure pour l'instant</h3>
+        <p>Écrivez votre première méthode de travail pour qu'elle reste accessible à toute l'équipe.</p>
+        <div class="empty-state-actions">
+          <button type="button" class="btn btn-primary" onclick="openProcedureFormModal()">Créer une procédure</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = filtered.map(function (proc) {
+    const stepCount = (proc.steps || []).length;
+    return `
+      <div class="proc-row" onclick="viewProcedure('${proc.id}')">
+        <div class="proc-icon">☑</div>
+        <div class="proc-info">
+          <div class="proc-title">${proc.title}</div>
+          <div class="proc-meta">
+            <span>${proc.responsible || 'Responsable non défini'}</span><span>·</span>
+            <span>${stepCount} étape${stepCount > 1 ? 's' : ''}</span><span>·</span>
+            <span>${formatDateShort(proc.created_at)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function viewProcedure(id) {
+  const proc = allProcedures.find(p => p.id === id);
+  if (!proc) return;
+
+  document.getElementById('view-title').textContent = proc.title;
+  document.getElementById('view-objective').textContent = proc.objective || '—';
+  document.getElementById('view-responsible').textContent = proc.responsible || '—';
+  document.getElementById('view-documents').textContent = proc.documents_needed || '—';
+
+  const stepsList = document.getElementById('view-steps');
+  stepsList.innerHTML = (proc.steps || []).map(s => `<li>${s}</li>`).join('') || '<li>Aucune étape renseignée</li>';
+
+  const infoLabel = document.getElementById('view-info-label');
+  const infoValue = document.getElementById('view-info');
+  if (proc.additional_info) {
+    infoLabel.style.display = '';
+    infoValue.style.display = '';
+    infoValue.textContent = proc.additional_info;
+  } else {
+    infoLabel.style.display = 'none';
+    infoValue.style.display = 'none';
+  }
+
+  document.getElementById('view-edit-btn').onclick = function () { openProcedureFormModal(proc); };
+
+  const deleteBtn = document.getElementById('view-delete-btn');
+  if (procRole === 'admin') {
+    deleteBtn.style.display = '';
+    deleteBtn.onclick = function () { deleteProcedure(proc.id); };
+  } else {
+    deleteBtn.style.display = 'none';
+  }
+
+  openModalById('procedure-view-modal');
+}
+
+function deleteProcedure(id) {
+  confirmAction({
+    title: 'Supprimer cette procédure ?',
+    message: "Cette action est définitive.",
+    confirmLabel: 'Supprimer',
+    danger: true,
+    onConfirm: async function () {
+      const { error } = await supabaseClient.from('procedures').delete().eq('id', id);
+      if (error) {
+        showToast('Suppression impossible : ' + error.message, 'error');
+        return;
+      }
+      showToast('Procédure supprimée.', 'success');
+      closeModalById('procedure-view-modal');
+      await loadProceduresData();
+    }
+  });
+}
+
+async function loadProceduresData() {
+  const { data, error } = await supabaseClient
+    .from('procedures')
+    .select('id, title, objective, responsible, documents_needed, steps, additional_info, created_at')
+    .eq('company_id', procCompanyId)
+    .order('created_at', { ascending: false });
+
+  allProcedures = error ? [] : data;
+  renderProcedures();
+}
+
+async function initProceduresPage() {
+  const list = document.getElementById('proc-list');
+  if (!list) return; // pas sur la page Procédures
+
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const { data: membership, error: membershipError } = await supabaseClient
+    .from('company_members')
+    .select('company_id, role')
+    .eq('user_id', session.user.id)
+    .single();
+
+  if (membershipError || !membership) {
+    showToast("Impossible de charger votre espace entreprise.", 'error');
+    return;
+  }
+
+  procCompanyId = membership.company_id;
+  procRole = membership.role;
+
+  await loadProceduresData();
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('action') === 'add') openProcedureFormModal();
+
+  document.getElementById('procedures-search-input').addEventListener('input', renderProcedures);
+
+  document.getElementById('procedure-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    const titleInput = document.getElementById('procedure-title');
+    const stepsInput = document.getElementById('procedure-steps');
+    const steps = stepsInput.value.split('\n').map(s => s.trim()).filter(Boolean);
+
+    let hasError = false;
+    if (titleInput.value.trim().length === 0) {
+      showFieldError('procedure-title-field');
+      hasError = true;
+    } else {
+      clearFieldError('procedure-title-field');
+    }
+    if (steps.length === 0) {
+      showFieldError('procedure-steps-field');
+      hasError = true;
+    } else {
+      clearFieldError('procedure-steps-field');
+    }
+    if (hasError) return;
+
+    const payload = {
+      company_id: procCompanyId,
+      title: titleInput.value.trim(),
+      objective: document.getElementById('procedure-objective').value.trim(),
+      responsible: document.getElementById('procedure-responsible').value.trim(),
+      documents_needed: document.getElementById('procedure-documents').value.trim(),
+      steps: steps,
+      additional_info: document.getElementById('procedure-info').value.trim(),
+      updated_at: new Date().toISOString()
+    };
+
+    const submitBtn = document.getElementById('procedure-form-submit');
+    setButtonLoading(submitBtn, true, 'Enregistrement...');
+
+    let result;
+    if (editingProcedureId) {
+      result = await supabaseClient.from('procedures').update(payload).eq('id', editingProcedureId);
+    } else {
+      const { data: { session: currentSession } } = await supabaseClient.auth.getSession();
+      payload.created_by = currentSession.user.id;
+      result = await supabaseClient.from('procedures').insert(payload);
+    }
+
+    setButtonLoading(submitBtn, false);
+
+    if (result.error) {
+      showToast('Erreur : ' + result.error.message, 'error');
+      return;
+    }
+
+    showToast(editingProcedureId ? 'Procédure mise à jour.' : 'Procédure créée.', 'success');
+    closeModalById('procedure-form-modal');
+    await loadProceduresData();
+  });
+}
+
+
+/* ========== PAGE CONNAISSANCES ========== */
+
+let knowCompanyId = null;
+let knowRole = null;
+let allKnowledge = [];
+let activeKnowledgeType = null;
+let editingKnowledgeId = null;
+
+const KNOWLEDGE_TYPE_LABELS = { role: 'Rôle & responsabilité', contact: 'Contact utile', note: 'Note libre' };
+const KNOWLEDGE_TYPE_ICONS = { role: '◆', contact: '☎', note: '✎' };
+
+function openKnowledgeFormModal(entry) {
+  const form = document.getElementById('knowledge-form');
+  form.reset();
+  clearFieldError('knowledge-title-field');
+
+  editingKnowledgeId = entry ? entry.id : null;
+  document.getElementById('knowledge-form-title').textContent = entry ? "Modifier l'entrée" : 'Nouvelle entrée';
+  document.getElementById('knowledge-form-submit').textContent = entry ? 'Enregistrer' : 'Créer';
+
+  if (entry) {
+    document.getElementById('knowledge-type').value = entry.type;
+    document.getElementById('knowledge-title').value = entry.title;
+    document.getElementById('knowledge-content').value = entry.content || '';
+  }
+
+  closeModalById('knowledge-view-modal');
+  openModalById('knowledge-form-modal');
+}
+
+function renderKnowledgeTypeStrip() {
+  const strip = document.getElementById('knowledge-type-strip');
+  if (!strip) return;
+
+  let html = `<span class="category-chip ${activeKnowledgeType === null ? 'is-active' : ''}" onclick="setKnowledgeTypeFilter(null)">Tous (${allKnowledge.length})</span>`;
+  Object.keys(KNOWLEDGE_TYPE_LABELS).forEach(function (type) {
+    const count = allKnowledge.filter(k => k.type === type).length;
+    html += `<span class="category-chip ${activeKnowledgeType === type ? 'is-active' : ''}" onclick="setKnowledgeTypeFilter('${type}')">${KNOWLEDGE_TYPE_LABELS[type]} (${count})</span>`;
+  });
+  strip.innerHTML = html;
+}
+
+function setKnowledgeTypeFilter(type) {
+  activeKnowledgeType = type;
+  renderKnowledgeTypeStrip();
+  renderKnowledge();
+}
+
+function renderKnowledge() {
+  const list = document.getElementById('knowledge-list');
+  if (!list) return;
+
+  const searchInput = document.getElementById('knowledge-search-input');
+  const searchTerm = (searchInput ? searchInput.value : '').trim().toLowerCase();
+
+  const filtered = allKnowledge.filter(function (entry) {
+    const matchesType = activeKnowledgeType === null || entry.type === activeKnowledgeType;
+    const matchesSearch = !searchTerm || entry.title.toLowerCase().includes(searchTerm);
+    return matchesType && matchesSearch;
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="card empty-state">
+        <div class="empty-state-icon">◎</div>
+        <h3>Rien pour l'instant</h3>
+        <p>Ajoutez les rôles, contacts utiles et notes qui font tourner l'entreprise.</p>
+        <div class="empty-state-actions">
+          <button type="button" class="btn btn-primary" onclick="openKnowledgeFormModal()">Ajouter une entrée</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = filtered.map(function (entry) {
+    return `
+      <div class="know-row" onclick="viewKnowledge('${entry.id}')">
+        <div class="know-icon know-icon-${entry.type}">${KNOWLEDGE_TYPE_ICONS[entry.type]}</div>
+        <div class="know-info">
+          <div class="know-title">${entry.title}</div>
+          <div class="know-meta">${KNOWLEDGE_TYPE_LABELS[entry.type]}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function viewKnowledge(id) {
+  const entry = allKnowledge.find(k => k.id === id);
+  if (!entry) return;
+
+  document.getElementById('knowledge-view-title').textContent = entry.title;
+  document.getElementById('knowledge-view-content').textContent = entry.content || 'Aucun détail renseigné.';
+
+  document.getElementById('knowledge-edit-btn').onclick = function () { openKnowledgeFormModal(entry); };
+
+  const deleteBtn = document.getElementById('knowledge-delete-btn');
+  if (knowRole === 'admin') {
+    deleteBtn.style.display = '';
+    deleteBtn.onclick = function () { deleteKnowledge(entry.id); };
+  } else {
+    deleteBtn.style.display = 'none';
+  }
+
+  openModalById('knowledge-view-modal');
+}
+
+function deleteKnowledge(id) {
+  confirmAction({
+    title: 'Supprimer cette entrée ?',
+    message: "Cette action est définitive.",
+    confirmLabel: 'Supprimer',
+    danger: true,
+    onConfirm: async function () {
+      const { error } = await supabaseClient.from('knowledge_entries').delete().eq('id', id);
+      if (error) {
+        showToast('Suppression impossible : ' + error.message, 'error');
+        return;
+      }
+      showToast('Entrée supprimée.', 'success');
+      closeModalById('knowledge-view-modal');
+      await loadKnowledgeData();
+    }
+  });
+}
+
+async function loadKnowledgeData() {
+  const { data, error } = await supabaseClient
+    .from('knowledge_entries')
+    .select('id, title, type, content, created_at')
+    .eq('company_id', knowCompanyId)
+    .order('created_at', { ascending: false });
+
+  allKnowledge = error ? [] : data;
+  renderKnowledgeTypeStrip();
+  renderKnowledge();
+}
+
+async function initKnowledgePage() {
+  const list = document.getElementById('knowledge-list');
+  if (!list) return; // pas sur la page Connaissances
+
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const { data: membership, error: membershipError } = await supabaseClient
+    .from('company_members')
+    .select('company_id, role')
+    .eq('user_id', session.user.id)
+    .single();
+
+  if (membershipError || !membership) {
+    showToast("Impossible de charger votre espace entreprise.", 'error');
+    return;
+  }
+
+  knowCompanyId = membership.company_id;
+  knowRole = membership.role;
+
+  await loadKnowledgeData();
+
+  document.getElementById('knowledge-search-input').addEventListener('input', renderKnowledge);
+
+  document.getElementById('knowledge-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    const titleInput = document.getElementById('knowledge-title');
+    if (titleInput.value.trim().length === 0) {
+      showFieldError('knowledge-title-field');
+      return;
+    }
+    clearFieldError('knowledge-title-field');
+
+    const payload = {
+      company_id: knowCompanyId,
+      type: document.getElementById('knowledge-type').value,
+      title: titleInput.value.trim(),
+      content: document.getElementById('knowledge-content').value.trim(),
+      updated_at: new Date().toISOString()
+    };
+
+    const submitBtn = document.getElementById('knowledge-form-submit');
+    setButtonLoading(submitBtn, true, 'Enregistrement...');
+
+    let result;
+    if (editingKnowledgeId) {
+      result = await supabaseClient.from('knowledge_entries').update(payload).eq('id', editingKnowledgeId);
+    } else {
+      const { data: { session: currentSession } } = await supabaseClient.auth.getSession();
+      payload.created_by = currentSession.user.id;
+      result = await supabaseClient.from('knowledge_entries').insert(payload);
+    }
+
+    setButtonLoading(submitBtn, false);
+
+    if (result.error) {
+      showToast('Erreur : ' + result.error.message, 'error');
+      return;
+    }
+
+    showToast(editingKnowledgeId ? 'Entrée mise à jour.' : 'Entrée créée.', 'success');
+    closeModalById('knowledge-form-modal');
+    await loadKnowledgeData();
+  });
+}
+
+
 /* ========== INITIALISATION GÉNÉRALE ========== */
 
 document.addEventListener('DOMContentLoaded', function () {
   initAuthPage();
   initDashboardPage();
   initDocumentsPage();
+  initProceduresPage();
+  initKnowledgePage();
 });
