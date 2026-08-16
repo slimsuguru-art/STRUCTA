@@ -71,7 +71,8 @@ img,svg{display:block;max-width:100%}
 @keyframes toastOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(8px)}}
 .modal-overlay{position:fixed;inset:0;background:rgba(20,33,47,0.45);display:flex;align-items:center;justify-content:center;z-index:1100;opacity:0;pointer-events:none;transition:opacity 0.2s ease}
 .modal-overlay.is-open{opacity:1;pointer-events:auto}
-.modal-box{background:var(--color-surface);border-radius:var(--radius-lg);padding:var(--space-lg);max-width:380px;width:calc(100% - 2rem);box-shadow:0 20px 50px rgba(20,33,47,0.25);transform:translateY(10px) scale(0.98);transition:transform 0.2s ease}
+.modal-overlay{align-items:flex-start;overflow-y:auto;padding:var(--space-xl) var(--space-sm)}
+.modal-box{background:var(--color-surface);border-radius:var(--radius-lg);padding:var(--space-lg);max-width:380px;width:calc(100% - 2rem);max-height:calc(100vh - 4rem);overflow-y:auto;box-shadow:0 20px 50px rgba(20,33,47,0.25);transform:translateY(10px) scale(0.98);transition:transform 0.2s ease;margin:auto}
 .modal-overlay.is-open .modal-box{transform:translateY(0) scale(1)}
 .modal-box h3{margin-bottom:var(--space-xs)}
 .modal-box p{margin-bottom:var(--space-lg)}
@@ -275,3 +276,20 @@ body.app{background:var(--color-bg)}
 .page-loader.is-hidden{opacity:0;pointer-events:none}
 .spinner{width:32px;height:32px;border-radius:50%;border:3px solid var(--color-border);border-top-color:var(--color-trust);animation:spin 0.7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* ========== CORRECTIFS MOBILE ========== */
+
+@media (max-width: 640px) {
+  .field-row{grid-template-columns:1fr}
+  .modal-actions{flex-wrap:wrap-reverse}
+  .modal-actions .btn{flex:1;min-width:120px}
+  .app-header{flex-direction:column;align-items:stretch}
+  .app-search{min-width:0}
+  .toolbar{flex-direction:column}
+  .toolbar .btn{width:100%}
+  .doc-row,.proc-row,.know-row{flex-wrap:wrap}
+  .doc-actions{margin-left:auto}
+  .stats-grid{grid-template-columns:repeat(2, 1fr)}
+  .hero h1{font-size:1.6rem}
+  .nav-actions{flex-wrap:wrap;justify-content:center}
+}
