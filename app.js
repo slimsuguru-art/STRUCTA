@@ -10,6 +10,61 @@ const SUPABASE_URL = 'https://gefpajwfodgyxqxwxofr.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlZnBhandmb2RneXhxeHd4b2ZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3Mjk1MTIsImV4cCI6MjEwMjMwNTUxMn0.3I55EB7sqhr70mgPi6N0fVR8BXp5mdlJVnqtFfDCg64';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+const DEFAULT_CATEGORIES = [
+  'Contrats', 'Documents administratifs', 'Rapports', 'Factures',
+  'Modèles', 'Documents RH', 'Documents techniques', 'Autres fichiers importants'
+];
+
+// Filet de sécurité : si un compte existe côté auth mais n'a jamais eu
+// d'entreprise créée (ex: interruption par la confirmation e-mail),
+// on la crée automatiquement à la prochaine visite d'une page protégée.
+async function ensureCompanySetup(session) {
+  const userId = session.user.id;
+
+  const { data: existing } = await supabaseClient
+    .from('company_members')
+    .select('company_id, role')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (existing) return existing;
+
+  const meta = session.user.user_metadata || {};
+  const companyName = meta.company_name || 'Mon entreprise';
+
+  const { data: companyData, error: companyError } = await supabaseClient
+    .from('companies')
+    .insert({ name: companyName, owner_id: userId })
+    .select()
+    .single();
+
+  if (companyError) {
+    console.error('Auto-reparation (companies):', companyError);
+    return null;
+  }
+
+  const { error: memberError } = await supabaseClient
+    .from('company_members')
+    .insert({
+      company_id: companyData.id,
+      user_id: userId,
+      first_name: meta.first_name || '',
+      last_name: meta.last_name || '',
+      role: 'admin'
+    });
+
+  if (memberError) {
+    console.error('Auto-reparation (company_members):', memberError);
+    return null;
+  }
+
+  await supabaseClient
+    .from('document_categories')
+    .insert(DEFAULT_CATEGORIES.map(name => ({ company_id: companyData.id, name })));
+
+  return { company_id: companyData.id, role: 'admin' };
+}
+
 
 /* ========== UTILITAIRES UI (toasts, confirmation) ========== */
 
@@ -290,7 +345,14 @@ async function initAuthPage() {
 
       const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
         email: emailEl.value,
-        password: passwordEl.value
+        password: passwordEl.value,
+        options: {
+          data: {
+            company_name: companyEl.value.trim(),
+            first_name: firstNameEl.value.trim(),
+            last_name: lastNameEl.value.trim()
+          }
+        }
       });
 
       if (signUpError) {
@@ -308,44 +370,13 @@ async function initAuthPage() {
         return;
       }
 
-      const userId = signUpData.user.id;
+      const setup = await ensureCompanySetup(signUpData.session);
 
-      const { data: companyData, error: companyError } = await supabaseClient
-        .from('companies')
-        .insert({ name: companyEl.value.trim(), owner_id: userId })
-        .select()
-        .single();
-
-      if (companyError) {
+      if (!setup) {
         setButtonLoading(submitBtn, false);
-        showAlert("Compte créé, mais la création de l'espace entreprise a échoué : " + companyError.message);
+        showAlert("Compte créé, mais la création de l'espace entreprise a échoué. Réessayez de vous connecter dans un instant.");
         return;
       }
-
-      const { error: memberError } = await supabaseClient
-        .from('company_members')
-        .insert({
-          company_id: companyData.id,
-          user_id: userId,
-          first_name: firstNameEl.value.trim(),
-          last_name: lastNameEl.value.trim(),
-          role: 'admin'
-        });
-
-      if (memberError) {
-        setButtonLoading(submitBtn, false);
-        showAlert("Espace créé, mais une erreur est survenue : " + memberError.message);
-        return;
-      }
-
-      // Catégories par défaut, conformes au cahier des charges.
-      const defaultCategories = [
-        'Contrats', 'Documents administratifs', 'Rapports', 'Factures',
-        'Modèles', 'Documents RH', 'Documents techniques', 'Autres fichiers importants'
-      ];
-      await supabaseClient
-        .from('document_categories')
-        .insert(defaultCategories.map(name => ({ company_id: companyData.id, name })));
 
       setButtonLoading(submitBtn, false);
 
@@ -424,6 +455,8 @@ async function initDashboardPage() {
   }
 
   const userId = session.user.id;
+
+  await ensureCompanySetup(session);
 
   const { data: membership, error: membershipError } = await supabaseClient
     .from('company_members')
@@ -643,6 +676,8 @@ async function initDocumentsPage() {
   }
 
   const userId = session.user.id;
+
+  await ensureCompanySetup(session);
 
   const { data: membership, error: membershipError } = await supabaseClient
     .from('company_members')
@@ -926,6 +961,8 @@ async function initProceduresPage() {
     return;
   }
 
+  await ensureCompanySetup(session);
+
   const { data: membership, error: membershipError } = await supabaseClient
     .from('company_members')
     .select('company_id, role')
@@ -1158,6 +1195,8 @@ async function initKnowledgePage() {
     window.location.href = 'login.html';
     return;
   }
+
+  await ensureCompanySetup(session);
 
   const { data: membership, error: membershipError } = await supabaseClient
     .from('company_members')
