@@ -433,7 +433,8 @@ async function initDashboardPage() {
 
   if (membershipError || !membership) {
     hidePageLoader();
-    showToast("Impossible de charger votre espace entreprise.", 'error');
+    console.error('Erreur membership:', membershipError);
+    showToast("Impossible de charger votre espace entreprise : " + (membershipError ? membershipError.message : 'aucune entreprise associee a ce compte.'), 'error');
     return;
   }
 
@@ -651,7 +652,8 @@ async function initDocumentsPage() {
 
   if (membershipError || !membership) {
     hidePageLoader();
-    showToast("Impossible de charger votre espace entreprise.", 'error');
+    console.error('Erreur membership:', membershipError);
+    showToast("Impossible de charger votre espace entreprise : " + (membershipError ? membershipError.message : 'aucune entreprise associee a ce compte.'), 'error');
     return;
   }
 
@@ -932,7 +934,8 @@ async function initProceduresPage() {
 
   if (membershipError || !membership) {
     hidePageLoader();
-    showToast("Impossible de charger votre espace entreprise.", 'error');
+    console.error('Erreur membership:', membershipError);
+    showToast("Impossible de charger votre espace entreprise : " + (membershipError ? membershipError.message : 'aucune entreprise associee a ce compte.'), 'error');
     return;
   }
 
@@ -1164,7 +1167,8 @@ async function initKnowledgePage() {
 
   if (membershipError || !membership) {
     hidePageLoader();
-    showToast("Impossible de charger votre espace entreprise.", 'error');
+    console.error('Erreur membership:', membershipError);
+    showToast("Impossible de charger votre espace entreprise : " + (membershipError ? membershipError.message : 'aucune entreprise associee a ce compte.'), 'error');
     return;
   }
 
