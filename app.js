@@ -484,6 +484,38 @@ async function handleLogout() {
   window.location.href = 'index.html';
 }
 
+function renderTrialBanner(company, role) {
+  const banner = document.getElementById('trial-banner');
+  if (!banner || !company) return;
+
+  // TODO(Ognandji) : remplacer par ton vrai numero WhatsApp (format 241XXXXXXXX) ou une adresse e-mail.
+  const upgradeLink = 'https://wa.me/241XXXXXXXX?text=' + encodeURIComponent('Bonjour, je souhaite passer au plan Pro sur STRUCTA pour ' + company.name);
+
+  if (company.status === 'active') {
+    banner.style.display = 'none';
+    return;
+  }
+
+  const daysLeft = Math.ceil((new Date(company.trial_ends_at) - new Date()) / 86400000);
+  const planLabel = company.plan === 'pro' ? 'Pro' : 'Starter';
+  const upgradeBtn = role === 'admin'
+    ? `<a href="${upgradeLink}" target="_blank" class="btn btn-primary" style="padding:0.4rem 1rem;font-size:var(--fs-xs);">Passer Pro</a>`
+    : '';
+
+  banner.style.display = 'flex';
+
+  if (daysLeft <= 0) {
+    banner.className = 'trial-banner is-expired';
+    banner.innerHTML = `<span><strong>Votre essai gratuit est terminé.</strong> Passez au plan ${planLabel} pour continuer à utiliser STRUCTA sans interruption.</span>${upgradeBtn}`;
+  } else if (daysLeft <= 3) {
+    banner.className = 'trial-banner is-warning';
+    banner.innerHTML = `<span><strong>Essai gratuit : ${daysLeft} jour${daysLeft > 1 ? 's' : ''} restant${daysLeft > 1 ? 's' : ''}.</strong> Passez au plan ${planLabel} pour ne pas perdre l'accès.</span>${upgradeBtn}`;
+  } else {
+    banner.className = 'trial-banner';
+    banner.innerHTML = `<span>Essai gratuit — <strong>${daysLeft} jours restants</strong> · Plan ${planLabel}</span>${upgradeBtn}`;
+  }
+}
+
 async function initDashboardPage() {
   const banner = document.getElementById('onboarding-banner');
   const statDocuments = document.getElementById('stat-documents');
@@ -501,7 +533,7 @@ async function initDashboardPage() {
 
   const { data: membership, error: membershipError } = await supabaseClient
     .from('company_members')
-    .select('company_id, first_name, role, companies ( name )')
+    .select('company_id, first_name, role, companies ( name, plan, status, trial_ends_at )')
     .eq('user_id', userId)
     .single();
 
@@ -511,6 +543,8 @@ async function initDashboardPage() {
     showToast("Impossible de charger votre espace entreprise : " + (membershipError ? membershipError.message : 'aucune entreprise associee a ce compte.'), 'error');
     return;
   }
+
+  renderTrialBanner(membership.companies, membership.role);
 
   const companyId = membership.company_id;
   const subtitle = document.getElementById('dashboard-subtitle');
