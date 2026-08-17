@@ -325,3 +325,32 @@ body.app{background:var(--color-bg)}
 
 /* Rythme vertical plus respire entre sections */
 .app-main>.card,.app-main>.stats-grid,.app-main>.toolbar,.app-main>.category-strip,.app-main>.doc-list,.app-main>.proc-list,.app-main>.know-list{margin-bottom:var(--space-lg)}
+
+/* ========== SECTION TARIFS (accueil) ========== */
+
+.pricing{max-width:720px;margin:var(--space-xl) auto;padding:0 var(--space-md);text-align:center}
+.pricing-heading{max-width:420px;margin:0 auto var(--space-lg)}
+.pricing-heading h2{margin-top:var(--space-sm)}
+.pricing-grid{display:flex;gap:var(--space-md);flex-wrap:wrap;justify-content:center;text-align:left}
+.pricing-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-lg);width:260px;box-shadow:0 1px 2px rgba(20,33,47,0.04)}
+.pricing-card-highlight{background:var(--color-ink);border-color:var(--color-ink);box-shadow:0 8px 22px rgba(124,92,252,0.25);position:relative;overflow:visible}
+.pricing-badge{position:absolute;top:-11px;right:20px;background:linear-gradient(135deg,var(--color-trust),var(--color-violet));color:#fff;font-size:11px;font-weight:600;padding:0.3rem 0.75rem;border-radius:999px}
+.pricing-plan{font-family:var(--font-display);font-weight:600;font-size:var(--fs-md);color:var(--color-ink)}
+.pricing-card-highlight .pricing-plan{color:#fff}
+.pricing-sub{font-size:var(--fs-xs);color:var(--color-text-muted);margin-bottom:var(--space-md)}
+.pricing-card-highlight .pricing-sub{color:rgba(255,255,255,0.6)}
+.pricing-price{font-family:var(--font-display);font-size:1.7rem;font-weight:600;color:var(--color-ink)}
+.pricing-card-highlight .pricing-price{color:#fff}
+.pricing-price span{font-size:var(--fs-sm);font-weight:400;color:var(--color-text-muted)}
+.pricing-card-highlight .pricing-price span{color:rgba(255,255,255,0.6)}
+.pricing-features{list-style:none;padding:0;margin:var(--space-md) 0;font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:2}
+.pricing-card-highlight .pricing-features{color:rgba(255,255,255,0.8)}
+.pricing-features li::before{content:'✓ ';color:var(--color-success)}
+.pricing-card-highlight .pricing-features li::before{color:#7EE2A8}
+
+/* ========== BANDEAU D'ESSAI ========== */
+
+.trial-banner{display:flex;align-items:center;justify-content:space-between;gap:var(--space-md);flex-wrap:wrap;background:var(--color-trust-light);color:var(--color-trust-dark);border-radius:var(--radius-md);padding:0.75rem var(--space-md);margin-bottom:var(--space-md);font-size:var(--fs-sm)}
+.trial-banner.is-warning{background:var(--color-amber-light);color:var(--color-amber-dark)}
+.trial-banner.is-expired{background:var(--color-danger-bg);color:var(--color-danger)}
+.trial-banner strong{font-weight:600}
