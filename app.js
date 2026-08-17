@@ -645,8 +645,12 @@ function renderDocuments() {
       ? (allCategories.find(c => c.id === doc.category_id)?.name || '')
       : 'Sans catégorie';
     const extension = (doc.name.split('.').pop() || '?').slice(0, 3).toUpperCase();
+    const safePath = doc.file_path.replace(/'/g, "\\'");
+    const safeId = doc.id.replace(/'/g, "\\'");
+    const safeName = doc.name.replace(/'/g, "\\'");
+
     const deleteBtn = docsRole === 'admin'
-      ? `<button type="button" class="icon-btn icon-btn-danger" onclick="deleteDocument('${doc.id}', '${doc.file_path}')" aria-label="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg></button>`
+      ? `<button type="button" class="icon-btn icon-btn-danger" onclick="deleteDocument('${safeId}', '${safePath}')" aria-label="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg></button>`
       : '';
 
     return `
@@ -657,7 +661,7 @@ function renderDocuments() {
           <div class="doc-meta"><span>${categoryName}</span><span>·</span><span>${formatDate(doc.created_at)}</span></div>
         </div>
         <div class="doc-actions">
-          <button type="button" class="icon-btn" onclick="downloadDocument('${doc.file_path}', '${doc.name.replace(/'/g, "\\'")}')" aria-label="Télécharger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg></button>
+          <button type="button" class="icon-btn" onclick="downloadDocument('${safePath}', '${safeName}')" aria-label="Télécharger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg></button>
           ${deleteBtn}
         </div>
       </div>
