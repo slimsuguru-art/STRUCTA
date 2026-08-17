@@ -308,3 +308,20 @@ body.app{background:var(--color-bg)}
 .section-heading{font-size:var(--fs-sm);font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;margin:var(--space-lg) 0 var(--space-sm)}
 .section-heading:first-child{margin-top:0}
 .invite-banner{background:var(--color-trust-light);color:var(--color-trust-dark);border-radius:var(--radius-md);padding:var(--space-md);text-align:center;font-size:var(--fs-sm);margin-bottom:var(--space-lg)}
+
+/* ========== ICONES SVG — dimensionnement et raffinements visuels ========== */
+
+.sidebar-icon svg,.app-search svg,.icon-btn svg,.member-avatar svg,.know-icon svg,.proc-icon svg{width:17px;height:17px;flex-shrink:0}
+.empty-state-icon svg{width:26px;height:26px}
+.icon-btn svg{width:16px;height:16px}
+.app-search svg{width:16px;height:16px;color:var(--color-text-muted)}
+.member-avatar svg,.know-icon svg{width:18px;height:18px}
+
+/* Echelle d'ombre plus posee, coherente sur toutes les cartes */
+.card,.stat-card,.doc-row,.proc-row,.know-row,.member-row{box-shadow:0 1px 2px rgba(20,33,47,0.04)}
+.card:hover,.doc-row:hover,.proc-row:hover,.know-row:hover{box-shadow:0 4px 16px rgba(20,33,47,0.08)}
+.member-row,.doc-row,.proc-row,.know-row{transition:box-shadow 0.2s ease,transform 0.2s ease,border-color 0.2s ease}
+.member-row:hover{border-color:var(--color-border-strong)}
+
+/* Rythme vertical plus respire entre sections */
+.app-main>.card,.app-main>.stats-grid,.app-main>.toolbar,.app-main>.category-strip,.app-main>.doc-list,.app-main>.proc-list,.app-main>.know-list{margin-bottom:var(--space-lg)}
