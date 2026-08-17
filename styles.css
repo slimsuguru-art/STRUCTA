@@ -293,3 +293,18 @@ body.app{background:var(--color-bg)}
   .hero h1{font-size:1.6rem}
   .nav-actions{flex-wrap:wrap;justify-content:center}
 }
+
+/* ========== PAGE EQUIPE ========== */
+
+.member-row{display:flex;align-items:center;gap:12px;padding:0.85rem var(--space-md);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);margin-bottom:8px}
+.member-avatar{width:36px;height:36px;border-radius:50%;background:var(--color-trust-light);color:var(--color-trust-dark);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:600;flex-shrink:0}
+.member-info{flex:1;min-width:0}
+.member-name{font-size:var(--fs-sm);font-weight:500;color:var(--color-ink)}
+.member-email{font-size:var(--fs-xs);color:var(--color-text-muted)}
+.role-badge{font-size:var(--fs-xs);font-weight:500;padding:0.25rem 0.65rem;border-radius:999px}
+.role-badge-admin{background:var(--color-violet-light);color:var(--color-violet-dark)}
+.role-badge-user{background:var(--color-surface-muted);color:var(--color-text-secondary)}
+.invite-link-box{display:flex;gap:8px;align-items:center;background:var(--color-surface-muted);border:1px dashed var(--color-border-strong);border-radius:var(--radius-sm);padding:0.6rem 0.85rem;margin-top:var(--space-sm);font-family:var(--font-mono);font-size:var(--fs-xs);word-break:break-all}
+.section-heading{font-size:var(--fs-sm);font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;margin:var(--space-lg) 0 var(--space-sm)}
+.section-heading:first-child{margin-top:0}
+.invite-banner{background:var(--color-trust-light);color:var(--color-trust-dark);border-radius:var(--radius-md);padding:var(--space-md);text-align:center;font-size:var(--fs-sm);margin-bottom:var(--space-lg)}
