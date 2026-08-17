@@ -248,6 +248,12 @@ function setButtonLoading(button, isLoading, loadingLabel) {
   }
 }
 
+async function acceptInviteToken(token) {
+  const { data, error } = await supabaseClient.rpc('accept_invite', { p_token: token });
+  if (error) return { success: false, error: error.message };
+  return data;
+}
+
 async function initAuthPage() {
   const loginForm = document.getElementById('form-login');
   const signupForm = document.getElementById('form-signup');
@@ -259,6 +265,19 @@ async function initAuthPage() {
     return;
   }
   hidePageLoader();
+
+  const params = new URLSearchParams(window.location.search);
+  const inviteToken = params.get('invite');
+
+  if (inviteToken) {
+    const banner = document.getElementById('invite-banner');
+    if (banner) {
+      banner.style.display = '';
+      banner.textContent = "Vous avez été invité à rejoindre une entreprise sur STRUCTA. Connectez-vous ou créez un compte pour accepter.";
+    }
+    const companyField = document.getElementById('signup-company-field');
+    if (companyField) companyField.style.display = 'none';
+  }
 
   if (loginForm) {
     loginForm.addEventListener('submit', async function (event) {
@@ -293,15 +312,24 @@ async function initAuthPage() {
         password: password.value
       });
 
-      setButtonLoading(submitBtn, false);
-
       if (error) {
+        setButtonLoading(submitBtn, false);
         showAlert(error.message === 'Invalid login credentials'
           ? 'E-mail ou mot de passe incorrect.'
           : error.message);
         return;
       }
 
+      if (inviteToken) {
+        const result = await acceptInviteToken(inviteToken);
+        if (!result.success) {
+          setButtonLoading(submitBtn, false);
+          showAlert(result.error || "Impossible d'accepter cette invitation.");
+          return;
+        }
+      }
+
+      setButtonLoading(submitBtn, false);
       showToast('Connexion réussie.', 'success');
       window.location.href = 'dashboard.html';
     });
@@ -321,10 +349,12 @@ async function initAuthPage() {
       const fields = [
         { id: 'signup-firstname', field: 'signup-firstname-field', check: v => v.trim().length > 0 },
         { id: 'signup-lastname', field: 'signup-lastname-field', check: v => v.trim().length > 0 },
-        { id: 'signup-company', field: 'signup-company-field', check: v => v.trim().length > 0 },
         { id: 'signup-email', field: 'signup-email-field', check: isValidEmail },
         { id: 'signup-password', field: 'signup-password-field', check: v => v.length >= 8 }
       ];
+      if (!inviteToken) {
+        fields.splice(2, 0, { id: 'signup-company', field: 'signup-company-field', check: v => v.trim().length > 0 });
+      }
 
       let hasError = false;
 
@@ -348,7 +378,7 @@ async function initAuthPage() {
         password: passwordEl.value,
         options: {
           data: {
-            company_name: companyEl.value.trim(),
+            company_name: inviteToken ? '' : companyEl.value.trim(),
             first_name: firstNameEl.value.trim(),
             last_name: lastNameEl.value.trim()
           }
@@ -370,6 +400,18 @@ async function initAuthPage() {
         return;
       }
 
+      if (inviteToken) {
+        const result = await acceptInviteToken(inviteToken);
+        setButtonLoading(submitBtn, false);
+        if (!result.success) {
+          showAlert(result.error || "Impossible d'accepter cette invitation.");
+          return;
+        }
+        showToast('Bienvenue sur STRUCTA !', 'success');
+        window.location.href = 'dashboard.html';
+        return;
+      }
+
       const setup = await ensureCompanySetup(signUpData.session);
 
       if (!setup) {
@@ -385,8 +427,7 @@ async function initAuthPage() {
     });
   }
 
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('tab') === 'signup') {
+  if (params.get('tab') === 'signup' || inviteToken) {
     switchTab('signup');
   }
 }
@@ -1264,6 +1305,212 @@ async function initKnowledgePage() {
 }
 
 
+/* ========== PAGE EQUIPE ========== */
+
+let teamCompanyId = null;
+let teamRole = null;
+let currentInviteLink = '';
+
+function openInviteModal() {
+  document.getElementById('invite-form').reset();
+  clearFieldError('invite-email-field');
+  openModalById('invite-modal');
+}
+
+function copyInviteLink() {
+  navigator.clipboard.writeText(currentInviteLink).then(function () {
+    showToast('Lien copié.', 'success');
+  }).catch(function () {
+    showToast('Impossible de copier automatiquement — sélectionnez le lien manuellement.', 'error');
+  });
+}
+
+function initialsFor(firstName, lastName) {
+  const a = (firstName || '').charAt(0);
+  const b = (lastName || '').charAt(0);
+  return (a + b).toUpperCase() || '?';
+}
+
+function renderMembers(members) {
+  const list = document.getElementById('member-list');
+  list.innerHTML = members.map(function (m) {
+    const fullName = [m.first_name, m.last_name].filter(Boolean).join(' ') || 'Membre';
+    const removeBtn = (teamRole === 'admin')
+      ? `<button type="button" class="icon-btn icon-btn-danger" onclick="removeMember('${m.id}', '${fullName.replace(/'/g, "\\'")}')" aria-label="Retirer">✕</button>`
+      : '';
+    return `
+      <div class="member-row">
+        <div class="member-avatar">${initialsFor(m.first_name, m.last_name)}</div>
+        <div class="member-info">
+          <div class="member-name">${fullName}</div>
+        </div>
+        <span class="role-badge role-badge-${m.role}">${m.role === 'admin' ? 'Administrateur' : 'Utilisateur'}</span>
+        ${removeBtn}
+      </div>
+    `;
+  }).join('');
+}
+
+function removeMember(memberId, name) {
+  confirmAction({
+    title: `Retirer ${name} ?`,
+    message: "Cette personne perdra l'accès à l'espace de l'entreprise.",
+    confirmLabel: 'Retirer',
+    danger: true,
+    onConfirm: async function () {
+      const { error } = await supabaseClient.from('company_members').delete().eq('id', memberId);
+      if (error) {
+        showToast('Suppression impossible : ' + error.message, 'error');
+        return;
+      }
+      showToast('Membre retiré.', 'success');
+      await loadTeamData();
+    }
+  });
+}
+
+function renderInvites(invites) {
+  const section = document.getElementById('invites-section');
+  const list = document.getElementById('invite-list');
+
+  if (teamRole !== 'admin' || invites.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = '';
+
+  list.innerHTML = invites.map(function (inv) {
+    return `
+      <div class="member-row">
+        <div class="member-avatar">✉</div>
+        <div class="member-info">
+          <div class="member-name">${inv.email}</div>
+          <div class="member-email">En attente</div>
+        </div>
+        <span class="role-badge role-badge-${inv.role}">${inv.role === 'admin' ? 'Administrateur' : 'Utilisateur'}</span>
+        <button type="button" class="icon-btn icon-btn-danger" onclick="revokeInvite('${inv.id}')" aria-label="Annuler">✕</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function revokeInvite(id) {
+  confirmAction({
+    title: "Annuler cette invitation ?",
+    message: "Le lien ne fonctionnera plus.",
+    confirmLabel: 'Annuler l\'invitation',
+    danger: true,
+    onConfirm: async function () {
+      const { error } = await supabaseClient.from('company_invites').delete().eq('id', id);
+      if (error) {
+        showToast('Erreur : ' + error.message, 'error');
+        return;
+      }
+      showToast('Invitation annulée.', 'success');
+      await loadTeamData();
+    }
+  });
+}
+
+async function loadTeamData() {
+  const { data: members } = await supabaseClient
+    .from('company_members')
+    .select('id, first_name, last_name, role')
+    .eq('company_id', teamCompanyId)
+    .order('created_at');
+
+  renderMembers(members || []);
+
+  const statMembers = document.getElementById('stat-members');
+  if (statMembers) statMembers.textContent = (members || []).length;
+
+  if (teamRole === 'admin') {
+    const { data: invites } = await supabaseClient
+      .from('company_invites')
+      .select('id, email, role')
+      .eq('company_id', teamCompanyId)
+      .eq('status', 'pending')
+      .order('created_at');
+    renderInvites(invites || []);
+  }
+}
+
+async function initTeamPage() {
+  const list = document.getElementById('member-list');
+  if (!list) return; // pas sur la page Equipe
+
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  await ensureCompanySetup(session);
+
+  const { data: membership, error: membershipError } = await supabaseClient
+    .from('company_members')
+    .select('company_id, role')
+    .eq('user_id', session.user.id)
+    .single();
+
+  if (membershipError || !membership) {
+    hidePageLoader();
+    console.error('Erreur membership:', membershipError);
+    showToast("Impossible de charger votre espace entreprise : " + (membershipError ? membershipError.message : 'aucune entreprise associee a ce compte.'), 'error');
+    return;
+  }
+
+  teamCompanyId = membership.company_id;
+  teamRole = membership.role;
+
+  if (teamRole === 'admin') {
+    document.getElementById('team-admin-only').style.display = '';
+  }
+
+  await loadTeamData();
+  hidePageLoader();
+
+  document.getElementById('invite-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    const emailInput = document.getElementById('invite-email');
+    if (!isValidEmail(emailInput.value)) {
+      showFieldError('invite-email-field');
+      return;
+    }
+    clearFieldError('invite-email-field');
+
+    const submitBtn = document.getElementById('invite-form-submit');
+    setButtonLoading(submitBtn, true, 'Création...');
+
+    const { data, error } = await supabaseClient
+      .from('company_invites')
+      .insert({
+        company_id: teamCompanyId,
+        email: emailInput.value.trim().toLowerCase(),
+        role: document.getElementById('invite-role').value,
+        invited_by: session.user.id
+      })
+      .select()
+      .single();
+
+    setButtonLoading(submitBtn, false);
+
+    if (error) {
+      showToast('Erreur : ' + error.message, 'error');
+      return;
+    }
+
+    currentInviteLink = window.location.origin + window.location.pathname.replace('team.html', '') + 'login.html?invite=' + data.token;
+    document.getElementById('invite-link-text').textContent = currentInviteLink;
+
+    closeModalById('invite-modal');
+    openModalById('invite-link-modal');
+    await loadTeamData();
+  });
+}
+
+
 /* ========== INITIALISATION GÉNÉRALE ========== */
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -1272,4 +1519,5 @@ document.addEventListener('DOMContentLoaded', function () {
   initDocumentsPage();
   initProceduresPage();
   initKnowledgePage();
+  initTeamPage();
 });
