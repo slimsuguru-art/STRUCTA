@@ -444,7 +444,7 @@ function renderActivity() {
   if (recentActivity.length === 0) {
     list.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state-icon">◎</div>
+        <div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 4h6l2-4h4"/><path d="M5 12V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6"/></svg></div>
         <h3>Rien à afficher pour l'instant</h3>
         <p>Dès que vous ajouterez un document ou créerez une procédure, l'activité apparaîtra ici.</p>
         <div class="empty-state-actions">
@@ -629,7 +629,7 @@ function renderDocuments() {
   if (filtered.length === 0) {
     list.innerHTML = `
       <div class="card empty-state">
-        <div class="empty-state-icon">▤</div>
+        <div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg></div>
         <h3>Aucun document pour l'instant</h3>
         <p>Ajoutez votre premier document — contrat, facture, document RH ou technique.</p>
         <div class="empty-state-actions">
@@ -646,7 +646,7 @@ function renderDocuments() {
       : 'Sans catégorie';
     const extension = (doc.name.split('.').pop() || '?').slice(0, 3).toUpperCase();
     const deleteBtn = docsRole === 'admin'
-      ? `<button type="button" class="icon-btn icon-btn-danger" onclick="deleteDocument('${doc.id}', '${doc.file_path}')" aria-label="Supprimer">🗑</button>`
+      ? `<button type="button" class="icon-btn icon-btn-danger" onclick="deleteDocument('${doc.id}', '${doc.file_path}')" aria-label="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg></button>`
       : '';
 
     return `
@@ -657,7 +657,7 @@ function renderDocuments() {
           <div class="doc-meta"><span>${categoryName}</span><span>·</span><span>${formatDate(doc.created_at)}</span></div>
         </div>
         <div class="doc-actions">
-          <button type="button" class="icon-btn" onclick="downloadDocument('${doc.file_path}', '${doc.name.replace(/'/g, "\\'")}')" aria-label="Télécharger">⬇</button>
+          <button type="button" class="icon-btn" onclick="downloadDocument('${doc.file_path}', '${doc.name.replace(/'/g, "\\'")}')" aria-label="Télécharger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg></button>
           ${deleteBtn}
         </div>
       </div>
@@ -897,7 +897,7 @@ function renderProcedures() {
   if (filtered.length === 0) {
     list.innerHTML = `
       <div class="card empty-state">
-        <div class="empty-state-icon">☑</div>
+        <div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M8 12l3 3 5-6"/></svg></div>
         <h3>Aucune procédure pour l'instant</h3>
         <p>Écrivez votre première méthode de travail pour qu'elle reste accessible à toute l'équipe.</p>
         <div class="empty-state-actions">
@@ -912,7 +912,7 @@ function renderProcedures() {
     const stepCount = (proc.steps || []).length;
     return `
       <div class="proc-row" onclick="viewProcedure('${proc.id}')">
-        <div class="proc-icon">☑</div>
+        <div class="proc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M8 12l3 3 5-6"/></svg></div>
         <div class="proc-info">
           <div class="proc-title">${proc.title}</div>
           <div class="proc-meta">
@@ -1097,7 +1097,7 @@ let activeKnowledgeType = null;
 let editingKnowledgeId = null;
 
 const KNOWLEDGE_TYPE_LABELS = { role: 'Rôle & responsabilité', contact: 'Contact utile', note: 'Note libre' };
-const KNOWLEDGE_TYPE_ICONS = { role: '◆', contact: '☎', note: '✎' };
+const KNOWLEDGE_TYPE_ICONS = { role: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M8 14l-2 7 6-3 6 3-2-7"/></svg>', contact: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v2a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 1h2a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.8a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.28-1.27a2 2 0 0 1 2.11-.45c.9.34 1.84.57 2.8.7A2 2 0 0 1 22 16.92z"/></svg>', note: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>' };
 
 function openKnowledgeFormModal(entry) {
   const form = document.getElementById('knowledge-form');
@@ -1152,7 +1152,7 @@ function renderKnowledge() {
   if (filtered.length === 0) {
     list.innerHTML = `
       <div class="card empty-state">
-        <div class="empty-state-icon">◎</div>
+        <div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 4h6l2-4h4"/><path d="M5 12V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6"/></svg></div>
         <h3>Rien pour l'instant</h3>
         <p>Ajoutez les rôles, contacts utiles et notes qui font tourner l'entreprise.</p>
         <div class="empty-state-actions">
@@ -1336,7 +1336,7 @@ function renderMembers(members) {
   list.innerHTML = members.map(function (m) {
     const fullName = [m.first_name, m.last_name].filter(Boolean).join(' ') || 'Membre';
     const removeBtn = (teamRole === 'admin')
-      ? `<button type="button" class="icon-btn icon-btn-danger" onclick="removeMember('${m.id}', '${fullName.replace(/'/g, "\\'")}')" aria-label="Retirer">✕</button>`
+      ? `<button type="button" class="icon-btn icon-btn-danger" onclick="removeMember('${m.id}', '${fullName.replace(/'/g, "\\'")}')" aria-label="Retirer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>`
       : '';
     return `
       <div class="member-row">
@@ -1382,13 +1382,13 @@ function renderInvites(invites) {
   list.innerHTML = invites.map(function (inv) {
     return `
       <div class="member-row">
-        <div class="member-avatar">✉</div>
+        <div class="member-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
         <div class="member-info">
           <div class="member-name">${inv.email}</div>
           <div class="member-email">En attente</div>
         </div>
         <span class="role-badge role-badge-${inv.role}">${inv.role === 'admin' ? 'Administrateur' : 'Utilisateur'}</span>
-        <button type="button" class="icon-btn icon-btn-danger" onclick="revokeInvite('${inv.id}')" aria-label="Annuler">✕</button>
+        <button type="button" class="icon-btn icon-btn-danger" onclick="revokeInvite('${inv.id}')" aria-label="Annuler"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
       </div>
     `;
   }).join('');
