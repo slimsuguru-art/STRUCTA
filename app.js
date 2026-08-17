@@ -488,8 +488,7 @@ function renderTrialBanner(company, role) {
   const banner = document.getElementById('trial-banner');
   if (!banner || !company) return;
 
-  // TODO(Ognandji) : remplacer par ton vrai numero WhatsApp (format 241XXXXXXXX) ou une adresse e-mail.
-  const upgradeLink = 'https://wa.me/241XXXXXXXX?text=' + encodeURIComponent('Bonjour, je souhaite passer au plan Pro sur STRUCTA pour ' + company.name);
+  const upgradeLink = 'https://wa.me/24174713255?text=' + encodeURIComponent('Bonjour, je souhaite passer au plan Pro sur STRUCTA pour ' + company.name);
 
   if (company.status === 'active') {
     banner.style.display = 'none';
