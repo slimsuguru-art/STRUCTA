@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>STRUCTA — Tableau de bord</title>
+<meta name="description" content="Tableau de bord de votre espace STRUCTA.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Cdefs%3E%3ClinearGradient id=%27g%27 x1=%270%27 y1=%270%27 x2=%271%27 y2=%271%27%3E%3Cstop offset=%270%27 stop-color=%27%233E63DD%27/%3E%3Cstop offset=%271%27 stop-color=%27%237C5CFC%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2714%27 fill=%27url(%23g)%27/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -11,6 +14,8 @@
 </head>
 <body class="app">
 
+<div id="page-loader" class="page-loader"><div class="spinner"></div></div>
+<div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
 <div class="app-layout">
 
   <aside class="sidebar">
@@ -31,6 +36,9 @@
       <a href="documents.html?category=Mod%C3%A8les" class="sidebar-link">
         <span class="sidebar-icon">▥</span> Modèles
       </a>
+      <a href="team.html" class="sidebar-link">
+        <span class="sidebar-icon">◈</span> Équipe
+      </a>
     </nav>
     <div class="sidebar-footer">
       <span class="trust-note">
@@ -46,9 +54,12 @@
   <main class="app-main">
 
     <div class="app-header fade-in-up">
-      <div>
-        <h1>Tableau de bord</h1>
-        <p id="dashboard-subtitle" style="font-size: var(--fs-sm); color: var(--color-text-muted); margin: 2px 0 0;"></p>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button type="button" class="mobile-nav-toggle" onclick="openSidebar()" aria-label="Menu">☰</button>
+        <div>
+          <h1>Tableau de bord</h1>
+          <p id="dashboard-subtitle" style="font-size: var(--fs-sm); color: var(--color-text-muted); margin: 2px 0 0;"></p>
+        </div>
       </div>
       <div class="app-search">
         <span>⌕</span>
@@ -92,7 +103,7 @@
       <div class="card stat-card">
         <p class="stat-label">Membres</p>
         <p class="stat-value" id="stat-members">1</p>
-        <a href="#" class="stat-link">Inviter votre équipe →</a>
+        <a href="team.html" class="stat-link">Inviter votre équipe →</a>
       </div>
     </div>
 
@@ -101,7 +112,7 @@
         <h2>Activité récente</h2>
       </div>
       <div id="activity-list">
-        <!-- Rempli par app.js : état vide tant qu'il n'y a pas de données réelles -->
+        <div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div>
       </div>
     </div>
 
