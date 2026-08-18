@@ -427,9 +427,95 @@ async function initAuthPage() {
     });
   }
 
+  const forgotForm = document.getElementById('forgot-password-form');
+  if (forgotForm) {
+    forgotForm.addEventListener('submit', async function (event) {
+      event.preventDefault();
+
+      const emailInput = document.getElementById('forgot-password-email');
+      if (!isValidEmail(emailInput.value)) {
+        showFieldError('forgot-password-email-field');
+        return;
+      }
+      clearFieldError('forgot-password-email-field');
+
+      const submitBtn = document.getElementById('forgot-password-submit');
+      setButtonLoading(submitBtn, true, 'Envoi...');
+
+      const redirectTo = window.location.origin + window.location.pathname.replace('login.html', '') + 'reset-password.html';
+
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(emailInput.value.trim(), {
+        redirectTo: redirectTo
+      });
+
+      setButtonLoading(submitBtn, false);
+
+      if (error) {
+        showToast('Erreur : ' + error.message, 'error');
+        return;
+      }
+
+      document.getElementById('forgot-password-intro').textContent =
+        "Si un compte existe avec cette adresse, un lien de réinitialisation vient d'être envoyé.";
+      forgotForm.style.display = 'none';
+    });
+  }
+
   if (params.get('tab') === 'signup' || inviteToken) {
     switchTab('signup');
   }
+}
+
+
+async function initResetPasswordPage() {
+  const form = document.getElementById('reset-password-form');
+  if (!form) return; // pas sur la page de reinitialisation
+
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) {
+    document.getElementById('reset-invalid').style.display = 'flex';
+    form.style.display = 'none';
+    return;
+  }
+
+  form.addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    const passwordInput = document.getElementById('reset-password');
+    const confirmInput = document.getElementById('reset-password-confirm');
+    let hasError = false;
+
+    if (passwordInput.value.length < 8) {
+      showFieldError('reset-password-field');
+      hasError = true;
+    } else {
+      clearFieldError('reset-password-field');
+    }
+
+    if (confirmInput.value !== passwordInput.value || confirmInput.value.length === 0) {
+      showFieldError('reset-password-confirm-field');
+      hasError = true;
+    } else {
+      clearFieldError('reset-password-confirm-field');
+    }
+
+    if (hasError) return;
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    setButtonLoading(submitBtn, true, 'Mise à jour...');
+
+    const { error } = await supabaseClient.auth.updateUser({ password: passwordInput.value });
+
+    setButtonLoading(submitBtn, false);
+
+    if (error) {
+      showToast('Erreur : ' + error.message, 'error');
+      return;
+    }
+
+    showToast('Mot de passe mis à jour.', 'success');
+    window.location.href = 'dashboard.html';
+  });
 }
 
 
@@ -1557,4 +1643,5 @@ document.addEventListener('DOMContentLoaded', function () {
   initProceduresPage();
   initKnowledgePage();
   initTeamPage();
+  initResetPasswordPage();
 });
