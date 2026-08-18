@@ -67,7 +67,7 @@
 
       <div class="auth-meta">
         <label><input type="checkbox" id="login-remember"> Se souvenir de moi</label>
-        <a href="#">Mot de passe oublié ?</a>
+        <a href="#" onclick="openForgotPasswordModal(); return false;">Mot de passe oublié ?</a>
       </div>
 
       <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
@@ -113,6 +113,25 @@
 
   <p class="auth-footer fade-in-up-delay">Un produit Ognandji Labs · En continuant, vous acceptez nos conditions d'utilisation.</p>
 
+</div>
+
+<!-- Modale : mot de passe oublié -->
+<div id="forgot-password-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h3>Réinitialiser le mot de passe</h3>
+    <p id="forgot-password-intro">Indiquez votre adresse e-mail, vous recevrez un lien pour choisir un nouveau mot de passe.</p>
+    <form id="forgot-password-form">
+      <div class="field" id="forgot-password-email-field">
+        <label for="forgot-password-email">Adresse e-mail</label>
+        <input type="email" id="forgot-password-email" placeholder="nom@entreprise.com">
+        <span class="field-error">Entrez une adresse e-mail valide.</span>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModalById('forgot-password-modal')">Annuler</button>
+        <button type="submit" class="btn btn-primary" id="forgot-password-submit">Envoyer le lien</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
