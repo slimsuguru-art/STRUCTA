@@ -21,13 +21,13 @@ const DEFAULT_CATEGORIES = [
 async function ensureCompanySetup(session) {
   const userId = session.user.id;
 
-  const { data: existing } = await supabaseClient
+  const { data: existingRows } = await supabaseClient
     .from('company_members')
     .select('company_id, role')
     .eq('user_id', userId)
-    .maybeSingle();
+    .limit(1);
 
-  if (existing) return existing;
+  if (existingRows && existingRows.length > 0) return existingRows[0];
 
   const meta = session.user.user_metadata || {};
   const companyName = meta.company_name || 'Mon entreprise';
@@ -521,13 +521,46 @@ async function initResetPasswordPage() {
 
 /* ========== PAGE TABLEAU DE BORD ========== */
 
-function renderActivity() {
+async function logActivity(companyId, label) {
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    await supabaseClient.from('activity_log').insert({
+      company_id: companyId,
+      actor_id: session ? session.user.id : null,
+      action: 'event',
+      label: label
+    });
+  } catch (e) {
+    // Silencieux : l'activite est un confort, pas une operation critique.
+    console.error('logActivity:', e);
+  }
+}
+
+function relativeTime(isoString) {
+  const diffMs = Date.now() - new Date(isoString).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "à l'instant";
+  if (mins < 60) return `il y a ${mins} min`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `il y a ${hours} h`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return 'hier';
+  if (days < 7) return `il y a ${days} j`;
+  return new Date(isoString).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}
+
+async function renderActivity(companyId) {
   const list = document.getElementById('activity-list');
   if (!list) return;
 
-  const recentActivity = [];
+  const { data: recentActivity } = await supabaseClient
+    .from('activity_log')
+    .select('label, created_at')
+    .eq('company_id', companyId)
+    .order('created_at', { ascending: false })
+    .limit(8);
 
-  if (recentActivity.length === 0) {
+  if (!recentActivity || recentActivity.length === 0) {
     list.innerHTML = `
       <div class="empty-state">
         <div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 4h6l2-4h4"/><path d="M5 12V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6"/></svg></div>
@@ -541,6 +574,10 @@ function renderActivity() {
     `;
     return;
   }
+
+  list.innerHTML = recentActivity.map(function (item) {
+    return `<div class="activity-row"><span>${item.label}</span><span class="activity-time">${relativeTime(item.created_at)}</span></div>`;
+  }).join('');
 }
 
 function dismissOnboarding() {
@@ -652,7 +689,7 @@ async function initDashboardPage() {
   if (statCategories) statCategories.textContent = categoriesCount.count ?? 0;
   if (statMembers) statMembers.textContent = membersCount.count ?? 1;
 
-  renderActivity();
+  renderActivity(companyId);
 
   if (banner && localStorage.getItem('structa_onboarding_dismissed') === 'true') {
     banner.style.display = 'none';
@@ -769,7 +806,7 @@ function renderDocuments() {
     const safeName = doc.name.replace(/'/g, "\\'");
 
     const deleteBtn = docsRole === 'admin'
-      ? `<button type="button" class="icon-btn icon-btn-danger" onclick="deleteDocument('${safeId}', '${safePath}')" aria-label="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg></button>`
+      ? `<button type="button" class="icon-btn icon-btn-danger" onclick="deleteDocument('${safeId}', '${safePath}', '${safeName}')" aria-label="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg></button>`
       : '';
 
     return `
@@ -810,7 +847,7 @@ async function downloadDocument(filePath, fileName) {
   window.open(data.signedUrl, '_blank');
 }
 
-function deleteDocument(id, filePath) {
+function deleteDocument(id, filePath, name) {
   confirmAction({
     title: 'Supprimer ce document ?',
     message: "Cette action est définitive. Le fichier et son entrée seront supprimés.",
@@ -824,6 +861,7 @@ function deleteDocument(id, filePath) {
         return;
       }
       showToast('Document supprimé.', 'success');
+      await logActivity(docsCompanyId, `Document supprimé : ${name}`);
       await loadDocumentsData();
     }
   });
@@ -898,6 +936,7 @@ async function initDocumentsPage() {
     }
 
     showToast('Catégorie créée.', 'success');
+    await logActivity(docsCompanyId, `Catégorie créée : ${nameInput.value.trim()}`);
     closeModalById('category-modal');
     await loadDocumentsData();
   });
@@ -969,6 +1008,7 @@ async function initDocumentsPage() {
     }
 
     showToast('Document ajouté.', 'success');
+    await logActivity(docsCompanyId, `Document ajouté : ${nameInput.value.trim()}`);
     closeModalById('document-modal');
     await loadDocumentsData();
   });
@@ -1077,7 +1117,7 @@ function viewProcedure(id) {
   const deleteBtn = document.getElementById('view-delete-btn');
   if (procRole === 'admin') {
     deleteBtn.style.display = '';
-    deleteBtn.onclick = function () { deleteProcedure(proc.id); };
+    deleteBtn.onclick = function () { deleteProcedure(proc.id, proc.title); };
   } else {
     deleteBtn.style.display = 'none';
   }
@@ -1085,7 +1125,7 @@ function viewProcedure(id) {
   openModalById('procedure-view-modal');
 }
 
-function deleteProcedure(id) {
+function deleteProcedure(id, title) {
   confirmAction({
     title: 'Supprimer cette procédure ?',
     message: "Cette action est définitive.",
@@ -1098,6 +1138,7 @@ function deleteProcedure(id) {
         return;
       }
       showToast('Procédure supprimée.', 'success');
+      await logActivity(procCompanyId, `Procédure supprimée : ${title}`);
       closeModalById('procedure-view-modal');
       await loadProceduresData();
     }
@@ -1205,6 +1246,7 @@ async function initProceduresPage() {
     }
 
     showToast(editingProcedureId ? 'Procédure mise à jour.' : 'Procédure créée.', 'success');
+    await logActivity(procCompanyId, editingProcedureId ? `Procédure modifiée : ${payload.title}` : `Procédure créée : ${payload.title}`);
     closeModalById('procedure-form-modal');
     await loadProceduresData();
   });
@@ -1311,7 +1353,7 @@ function viewKnowledge(id) {
   const deleteBtn = document.getElementById('knowledge-delete-btn');
   if (knowRole === 'admin') {
     deleteBtn.style.display = '';
-    deleteBtn.onclick = function () { deleteKnowledge(entry.id); };
+    deleteBtn.onclick = function () { deleteKnowledge(entry.id, entry.title); };
   } else {
     deleteBtn.style.display = 'none';
   }
@@ -1319,7 +1361,7 @@ function viewKnowledge(id) {
   openModalById('knowledge-view-modal');
 }
 
-function deleteKnowledge(id) {
+function deleteKnowledge(id, title) {
   confirmAction({
     title: 'Supprimer cette entrée ?',
     message: "Cette action est définitive.",
@@ -1332,6 +1374,7 @@ function deleteKnowledge(id) {
         return;
       }
       showToast('Entrée supprimée.', 'success');
+      await logActivity(knowCompanyId, `Connaissance supprimée : ${title}`);
       closeModalById('knowledge-view-modal');
       await loadKnowledgeData();
     }
@@ -1422,6 +1465,7 @@ async function initKnowledgePage() {
     }
 
     showToast(editingKnowledgeId ? 'Entrée mise à jour.' : 'Entrée créée.', 'success');
+    await logActivity(knowCompanyId, editingKnowledgeId ? `Connaissance modifiée : ${payload.title}` : `Connaissance ajoutée : ${payload.title}`);
     closeModalById('knowledge-form-modal');
     await loadKnowledgeData();
   });
@@ -1487,6 +1531,7 @@ function removeMember(memberId, name) {
         return;
       }
       showToast('Membre retiré.', 'success');
+      await logActivity(teamCompanyId, `Membre retiré : ${name}`);
       await loadTeamData();
     }
   });
@@ -1627,9 +1672,100 @@ async function initTeamPage() {
     currentInviteLink = window.location.origin + window.location.pathname.replace('team.html', '') + 'login.html?invite=' + data.token;
     document.getElementById('invite-link-text').textContent = currentInviteLink;
 
+    await logActivity(teamCompanyId, `Invitation envoyée : ${data.email}`);
     closeModalById('invite-modal');
     openModalById('invite-link-modal');
     await loadTeamData();
+  });
+}
+
+
+/* ========== PAGE PARAMETRES ========== */
+
+async function initSettingsPage() {
+  const nameInput = document.getElementById('company-name-input');
+  if (!nameInput) return; // pas sur la page Parametres
+
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  await ensureCompanySetup(session);
+
+  const { data: membership, error: membershipError } = await supabaseClient
+    .from('company_members')
+    .select('company_id, first_name, last_name, role, companies ( name, plan, status, trial_ends_at )')
+    .eq('user_id', session.user.id)
+    .single();
+
+  if (membershipError || !membership) {
+    hidePageLoader();
+    console.error('Erreur membership:', membershipError);
+    showToast("Impossible de charger votre espace entreprise : " + (membershipError ? membershipError.message : 'aucune entreprise associee a ce compte.'), 'error');
+    return;
+  }
+
+  const companyId = membership.company_id;
+  const company = membership.companies;
+
+  nameInput.value = company.name;
+
+  if (membership.role === 'admin') {
+    nameInput.disabled = false;
+    document.getElementById('company-settings-submit').style.display = '';
+  } else {
+    document.getElementById('company-settings-readonly-note').style.display = '';
+  }
+
+  const planLabel = company.plan === 'pro' ? 'Plan Pro' : 'Plan Starter';
+  document.getElementById('settings-plan-label').textContent = planLabel;
+
+  const detail = document.getElementById('settings-plan-detail');
+  if (company.status === 'active') {
+    detail.textContent = 'Abonnement actif.';
+  } else {
+    const daysLeft = Math.ceil((new Date(company.trial_ends_at) - new Date()) / 86400000);
+    detail.textContent = daysLeft > 0
+      ? `Essai gratuit — ${daysLeft} jour${daysLeft > 1 ? 's' : ''} restant${daysLeft > 1 ? 's' : ''}.`
+      : "Essai gratuit terminé.";
+  }
+
+  const fullName = [membership.first_name, membership.last_name].filter(Boolean).join(' ') || 'Vous';
+  document.getElementById('settings-user-name').textContent = fullName;
+  document.getElementById('settings-user-email').textContent = session.user.email;
+  document.getElementById('settings-user-role').textContent = membership.role === 'admin' ? 'Administrateur' : 'Utilisateur';
+
+  hidePageLoader();
+
+  const form = document.getElementById('company-settings-form');
+  form.addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    if (nameInput.value.trim().length === 0) {
+      showFieldError('company-name-field');
+      return;
+    }
+    clearFieldError('company-name-field');
+
+    const submitBtn = document.getElementById('company-settings-submit');
+    setButtonLoading(submitBtn, true, 'Enregistrement...');
+
+    const { error } = await supabaseClient
+      .from('companies')
+      .update({ name: nameInput.value.trim() })
+      .eq('id', companyId);
+
+    setButtonLoading(submitBtn, false);
+
+    if (error) {
+      showToast('Erreur : ' + error.message, 'error');
+      return;
+    }
+
+    showToast('Nom de l\'entreprise mis à jour.', 'success');
+    await logActivity(companyId, `Entreprise renommée : ${nameInput.value.trim()}`);
   });
 }
 
@@ -1644,4 +1780,5 @@ document.addEventListener('DOMContentLoaded', function () {
   initKnowledgePage();
   initTeamPage();
   initResetPasswordPage();
+  initSettingsPage();
 });
