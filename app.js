@@ -471,11 +471,45 @@ async function initResetPasswordPage() {
   const form = document.getElementById('reset-password-form');
   if (!form) return; // pas sur la page de reinitialisation
 
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  if (!session) {
+  let resolved = false;
+
+  function showFormReady() {
+    if (resolved) return;
+    resolved = true;
+    document.getElementById('reset-invalid').style.display = 'none';
+    form.style.display = '';
+  }
+
+  function showInvalidLink() {
+    if (resolved) return;
+    resolved = true;
     document.getElementById('reset-invalid').style.display = 'flex';
     form.style.display = 'none';
-    return;
+  }
+
+  // Le lien de recuperation met parfois un instant a etre traite par Supabase
+  // avant que la session soit disponible : on ecoute l'evenement dedie...
+  supabaseClient.auth.onAuthStateChange(function (event, session) {
+    if (event === 'PASSWORD_RECOVERY' && session) {
+      showFormReady();
+    }
+  });
+
+  // ...et on verifie aussi immediatement, au cas ou la session soit deja prete.
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) {
+    showFormReady();
+  } else {
+    // Dernier recours : on laisse un court instant au client Supabase
+    // pour terminer de traiter le lien avant de conclure qu'il est invalide.
+    setTimeout(async function () {
+      const { data: { session: retrySession } } = await supabaseClient.auth.getSession();
+      if (retrySession) {
+        showFormReady();
+      } else {
+        showInvalidLink();
+      }
+    }, 1500);
   }
 
   form.addEventListener('submit', async function (event) {
