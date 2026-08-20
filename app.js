@@ -442,7 +442,7 @@ async function initAuthPage() {
       const submitBtn = document.getElementById('forgot-password-submit');
       setButtonLoading(submitBtn, true, 'Envoi...');
 
-      const redirectTo = window.location.origin + window.location.pathname.replace('login.html', '') + 'reset-password.html';
+      const redirectTo = 'https://slimsuguru-art.github.io/STRUCTA/nouveau-mot-de-passe.html';
 
       const { error } = await supabaseClient.auth.resetPasswordForEmail(emailInput.value.trim(), {
         redirectTo: redirectTo
