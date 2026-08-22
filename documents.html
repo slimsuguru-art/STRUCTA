@@ -72,6 +72,11 @@
 
     <div class="toolbar fade-in-up-delay" style="margin-bottom: var(--space-md);">
       <button type="button" class="btn btn-secondary" onclick="openCategoryModal()">+ Nouvelle catégorie</button>
+      <button type="button" class="btn btn-secondary" onclick="document.getElementById('scan-input').click()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px; margin-right:4px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Scanner un document
+      </button>
+      <input type="file" id="scan-input" accept="image/*" capture="environment" style="display:none;">
       <button type="button" class="btn btn-primary" onclick="openDocumentModal()">+ Ajouter un document</button>
     </div>
 
