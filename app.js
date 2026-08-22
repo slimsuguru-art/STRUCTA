@@ -984,6 +984,39 @@ async function initDocumentsPage() {
     }
   });
 
+  const scanInput = document.getElementById('scan-input');
+  if (scanInput) {
+    scanInput.addEventListener('change', function (event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      openDocumentModal();
+
+      // On transfère la photo capturée vers le champ fichier existant,
+      // pour réutiliser exactement le même pipeline d'upload/validation.
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      const fileInput = document.getElementById('document-file');
+      fileInput.files = dt.files;
+
+      const dropLabel = document.getElementById('file-drop-label');
+      if (dropLabel) {
+        dropLabel.textContent = file.name || 'Photo capturée';
+        dropLabel.classList.add('has-file');
+      }
+      clearFieldError('document-file-field');
+
+      const nameInput = document.getElementById('document-name');
+      if (nameInput && nameInput.value.trim().length === 0) {
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        nameInput.value = `Scan - ${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}h${pad(now.getMinutes())}`;
+      }
+
+      event.target.value = ''; // permet de scanner à nouveau ensuite
+    });
+  }
+
   document.getElementById('document-form').addEventListener('submit', async function (event) {
     event.preventDefault();
 
