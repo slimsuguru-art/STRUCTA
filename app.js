@@ -1804,6 +1804,19 @@ async function initSettingsPage() {
 }
 
 
+async function initFormulairesPage() {
+  if (!document.querySelector('.tpl-section')) return; // pas sur la page Formulaires
+
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  hidePageLoader();
+}
+
+
 /* ========== INITIALISATION GÉNÉRALE ========== */
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -1815,4 +1828,10 @@ document.addEventListener('DOMContentLoaded', function () {
   initTeamPage();
   initResetPasswordPage();
   initSettingsPage();
+  initFormulairesPage();
+
+  // Filet de sécurité : si aucune fonction d'initialisation ne correspond à la
+  // page actuelle (ex. une future page simple), on masque quand même le loader
+  // après un court délai pour ne jamais laisser la roue tourner indéfiniment.
+  setTimeout(hidePageLoader, 2500);
 });
