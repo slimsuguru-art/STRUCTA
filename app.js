@@ -901,6 +901,242 @@ function deleteDocument(id, filePath, name) {
   });
 }
 
+
+/* ========== SCAN DE DOCUMENT (photo -> recadrage -> PDF multi-pages) ========== */
+
+let scanPages = [];               // dataURLs des pages déjà recadrées/validées
+let scanCropNaturalW = 0;
+let scanCropNaturalH = 0;
+let scanCropBox = { x: 0, y: 0, w: 0, h: 0 };
+let scanCropDragMode = null;      // 'move' | 'tl' | 'tr' | 'bl' | 'br' | null
+let scanCropDragStart = null;
+
+function openScanModal() {
+  scanPages = [];
+  renderScanPages();
+  const camInput = document.getElementById('scan-camera-input');
+  if (camInput) camInput.value = '';
+  openModalById('scan-modal');
+}
+
+function renderScanPages() {
+  const wrap = document.getElementById('scan-pages');
+  const finishBtn = document.getElementById('scan-finish-btn');
+  if (!wrap || !finishBtn) return;
+
+  wrap.innerHTML = scanPages.map(function (dataUrl, i) {
+    return `<div class="scan-page-thumb">
+      <img src="${dataUrl}" alt="Page ${i + 1}">
+      <span class="scan-page-num">Page ${i + 1}</span>
+      <button type="button" class="scan-page-remove" onclick="deleteScanPage(${i})" aria-label="Supprimer">×</button>
+    </div>`;
+  }).join('');
+
+  finishBtn.disabled = scanPages.length === 0;
+  finishBtn.textContent = scanPages.length === 0
+    ? 'Valider le scan'
+    : `Valider le scan (${scanPages.length} page${scanPages.length > 1 ? 's' : ''})`;
+}
+
+function deleteScanPage(index) {
+  scanPages.splice(index, 1);
+  renderScanPages();
+}
+
+function loadCropImage(dataUrl) {
+  const img = document.getElementById('scan-crop-image');
+  img.onload = function () {
+    scanCropNaturalW = img.naturalWidth;
+    scanCropNaturalH = img.naturalHeight;
+    const renderedW = img.clientWidth;
+    const renderedH = img.clientHeight;
+    const marginX = renderedW * 0.06;
+    const marginY = renderedH * 0.06;
+    scanCropBox = { x: marginX, y: marginY, w: renderedW - marginX * 2, h: renderedH - marginY * 2 };
+    renderCropBox();
+  };
+  img.src = dataUrl;
+}
+
+function renderCropBox() {
+  const box = document.getElementById('scan-crop-box');
+  if (!box) return;
+  box.style.left = scanCropBox.x + 'px';
+  box.style.top = scanCropBox.y + 'px';
+  box.style.width = scanCropBox.w + 'px';
+  box.style.height = scanCropBox.h + 'px';
+}
+
+function rotateCropImage() {
+  const img = document.getElementById('scan-crop-image');
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalHeight;
+  canvas.height = img.naturalWidth;
+  const ctx = canvas.getContext('2d');
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.rotate(Math.PI / 2);
+  ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+  loadCropImage(canvas.toDataURL('image/jpeg', 0.92));
+}
+
+function applyCrop() {
+  const img = document.getElementById('scan-crop-image');
+  const renderedW = img.clientWidth;
+  const scale = scanCropNaturalW / renderedW;
+
+  const sx = scanCropBox.x * scale;
+  const sy = scanCropBox.y * scale;
+  const sw = scanCropBox.w * scale;
+  const sh = scanCropBox.h * scale;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = sw;
+  canvas.height = sh;
+  const ctx = canvas.getContext('2d');
+
+  const bwToggle = document.getElementById('scan-bw-toggle');
+  ctx.filter = (bwToggle && bwToggle.checked)
+    ? 'grayscale(1) contrast(1.35) brightness(1.08)'
+    : 'contrast(1.1) saturate(1.05)';
+
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+
+  scanPages.push(canvas.toDataURL('image/jpeg', 0.9));
+  renderScanPages();
+
+  closeModalById('scan-crop-modal');
+  openModalById('scan-modal');
+  const camInput = document.getElementById('scan-camera-input');
+  if (camInput) camInput.value = '';
+}
+
+function scanCropPointerDown(event, mode) {
+  event.preventDefault();
+  scanCropDragMode = mode;
+  scanCropDragStart = {
+    clientX: event.clientX, clientY: event.clientY,
+    box: Object.assign({}, scanCropBox),
+  };
+}
+
+function scanCropPointerMove(event) {
+  if (!scanCropDragMode || !scanCropDragStart) return;
+  const img = document.getElementById('scan-crop-image');
+  const maxW = img.clientWidth;
+  const maxH = img.clientHeight;
+  const dx = event.clientX - scanCropDragStart.clientX;
+  const dy = event.clientY - scanCropDragStart.clientY;
+  const start = scanCropDragStart.box;
+  const MIN = 40;
+  let { x, y, w, h } = start;
+
+  if (scanCropDragMode === 'move') {
+    x = Math.min(Math.max(start.x + dx, 0), maxW - start.w);
+    y = Math.min(Math.max(start.y + dy, 0), maxH - start.h);
+  } else if (scanCropDragMode === 'tl') {
+    x = Math.min(Math.max(start.x + dx, 0), start.x + start.w - MIN);
+    y = Math.min(Math.max(start.y + dy, 0), start.y + start.h - MIN);
+    w = start.x + start.w - x;
+    h = start.y + start.h - y;
+  } else if (scanCropDragMode === 'tr') {
+    y = Math.min(Math.max(start.y + dy, 0), start.y + start.h - MIN);
+    w = Math.min(Math.max(start.w + dx, MIN), maxW - start.x);
+    h = start.y + start.h - y;
+  } else if (scanCropDragMode === 'bl') {
+    x = Math.min(Math.max(start.x + dx, 0), start.x + start.w - MIN);
+    w = start.x + start.w - x;
+    h = Math.min(Math.max(start.h + dy, MIN), maxH - start.y);
+  } else if (scanCropDragMode === 'br') {
+    w = Math.min(Math.max(start.w + dx, MIN), maxW - start.x);
+    h = Math.min(Math.max(start.h + dy, MIN), maxH - start.y);
+  }
+
+  scanCropBox = { x, y, w, h };
+  renderCropBox();
+}
+
+function scanCropPointerUp() {
+  scanCropDragMode = null;
+  scanCropDragStart = null;
+}
+
+async function finishScan() {
+  if (scanPages.length === 0) return;
+  if (!window.jspdf) {
+    showToast('Erreur : la librairie PDF ne s\'est pas chargée.', 'error');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+
+  scanPages.forEach(function (dataUrl, i) {
+    if (i > 0) pdf.addPage();
+    const props = pdf.getImageProperties(dataUrl);
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const ratio = Math.min(pageW / props.width, pageH / props.height);
+    const w = props.width * ratio;
+    const h = props.height * ratio;
+    pdf.addImage(dataUrl, 'JPEG', (pageW - w) / 2, (pageH - h) / 2, w, h);
+  });
+
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const filename = `Scan-${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()}-${pad(now.getHours())}h${pad(now.getMinutes())}.pdf`;
+  const file = new File([pdf.output('blob')], filename, { type: 'application/pdf' });
+
+  const pageCount = scanPages.length;
+  scanPages = [];
+  closeModalById('scan-modal');
+
+  openDocumentModal();
+  const dt = new DataTransfer();
+  dt.items.add(file);
+  document.getElementById('document-file').files = dt.files;
+
+  const dropLabel = document.getElementById('file-drop-label');
+  dropLabel.textContent = filename;
+  dropLabel.classList.add('has-file');
+  clearFieldError('document-file-field');
+
+  const nameInput = document.getElementById('document-name');
+  nameInput.value = `Scan - ${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} (${pageCount} page${pageCount > 1 ? 's' : ''})`;
+}
+
+function initScanSystem() {
+  const camInput = document.getElementById('scan-camera-input');
+  if (!camInput) return; // pas sur la page Documents
+
+  camInput.addEventListener('change', function (event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function () {
+      closeModalById('scan-modal');
+      loadCropImage(reader.result);
+      openModalById('scan-crop-modal');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  const cropWrap = document.getElementById('scan-crop-wrap');
+  const box = document.getElementById('scan-crop-box');
+  if (cropWrap && box) {
+    box.querySelectorAll('.scan-crop-handle').forEach(function (handle) {
+      handle.addEventListener('pointerdown', function (event) {
+        scanCropPointerDown(event, handle.dataset.corner);
+      });
+    });
+    box.addEventListener('pointerdown', function (event) {
+      if (event.target.classList.contains('scan-crop-handle')) return;
+      scanCropPointerDown(event, 'move');
+    });
+    cropWrap.addEventListener('pointermove', scanCropPointerMove);
+    window.addEventListener('pointerup', scanCropPointerUp);
+  }
+}
+
 async function initDocumentsPage() {
   const list = document.getElementById('doc-list');
   if (!list) return; // pas sur la page Documents
@@ -984,38 +1220,7 @@ async function initDocumentsPage() {
     }
   });
 
-  const scanInput = document.getElementById('scan-input');
-  if (scanInput) {
-    scanInput.addEventListener('change', function (event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      openDocumentModal();
-
-      // On transfère la photo capturée vers le champ fichier existant,
-      // pour réutiliser exactement le même pipeline d'upload/validation.
-      const dt = new DataTransfer();
-      dt.items.add(file);
-      const fileInput = document.getElementById('document-file');
-      fileInput.files = dt.files;
-
-      const dropLabel = document.getElementById('file-drop-label');
-      if (dropLabel) {
-        dropLabel.textContent = file.name || 'Photo capturée';
-        dropLabel.classList.add('has-file');
-      }
-      clearFieldError('document-file-field');
-
-      const nameInput = document.getElementById('document-name');
-      if (nameInput && nameInput.value.trim().length === 0) {
-        const now = new Date();
-        const pad = (n) => String(n).padStart(2, '0');
-        nameInput.value = `Scan - ${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}h${pad(now.getMinutes())}`;
-      }
-
-      event.target.value = ''; // permet de scanner à nouveau ensuite
-    });
-  }
+  initScanSystem();
 
   document.getElementById('document-form').addEventListener('submit', async function (event) {
     event.preventDefault();
