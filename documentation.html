@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STRUCTA — Découvrir l'outil</title>
+<meta name="description" content="Découvrez STRUCTA : à quoi ça sert, comment ça fonctionne, et comment ça optimise le travail de votre entreprise.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Cdefs%3E%3ClinearGradient id=%27g%27 x1=%270%27 y1=%270%27 x2=%271%27 y2=%271%27%3E%3Cstop offset=%270%27 stop-color=%27%233E63DD%27/%3E%3Cstop offset=%271%27 stop-color=%27%237C5CFC%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2714%27 fill=%27url(%23g)%27/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  :root {
+    --doc-navy: #14212F; --doc-blue: #3E63DD; --doc-violet: #7C5CFC;
+    --doc-amber: #E08A3C; --doc-gray: #6B7280; --doc-bg: #F7F8F7;
+  }
+  body.doc-page { background: var(--doc-bg); margin: 0; font-family: 'Inter', sans-serif; color: var(--doc-navy); }
+  .doc-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 6vw; background: #fff; border-bottom: 1px solid #eceef0;
+  }
+  .doc-nav a.brand { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 1.2rem; color: var(--doc-navy); text-decoration: none; }
+  .doc-nav a.cta {
+    text-decoration: none; color: #fff; font-weight: 600; font-size: 0.9rem;
+    background: linear-gradient(135deg, var(--doc-blue), var(--doc-violet));
+    padding: 9px 18px; border-radius: 8px;
+  }
+  .doc-hero { text-align: center; padding: 64px 6vw 40px; max-width: 780px; margin: 0 auto; }
+  .doc-hero h1 { font-family: 'Space Grotesk', sans-serif; font-size: 2.3rem; margin: 0 0 14px; }
+  .doc-hero p { font-size: 1.1rem; color: var(--doc-gray); line-height: 1.6; margin: 0; }
+  .doc-section { max-width: 860px; margin: 0 auto; padding: 36px 6vw; }
+  .doc-section h2 {
+    font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; margin: 0 0 18px;
+    border-bottom: 2px solid var(--doc-blue); padding-bottom: 8px; display: inline-block;
+  }
+  .doc-section p { line-height: 1.65; color: #374151; }
+  .doc-feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 18px; margin-top: 10px; }
+  .doc-feature-card { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #eceef0; }
+  .doc-feature-card h3 { margin: 0 0 8px; font-size: 1.02rem; color: var(--doc-navy); }
+  .doc-feature-card p { font-size: 0.92rem; margin: 0 0 10px; color: #4b5563; }
+  .doc-feature-card .benefit {
+    font-size: 0.85rem; color: var(--doc-amber); font-weight: 600;
+    background: rgba(224,138,60,0.08); padding: 8px 10px; border-radius: 8px;
+  }
+  .doc-scenario-list { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+  .doc-scenario { background: #fff; border-left: 3px solid var(--doc-blue); border-radius: 8px; padding: 14px 18px; font-size: 0.95rem; }
+  .doc-pricing { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-top: 14px; }
+  .doc-price-card { background: #fff; border-radius: 14px; padding: 26px; border: 1px solid #eceef0; text-align: center; }
+  .doc-price-card.pro { border: 2px solid var(--doc-blue); }
+  .doc-price-card h3 { font-family: 'Space Grotesk', sans-serif; margin: 0 0 6px; }
+  .doc-price-card .price { font-size: 1.6rem; font-weight: 600; color: var(--doc-blue); margin: 6px 0 10px; }
+  .doc-price-card p { font-size: 0.88rem; color: var(--doc-gray); }
+  .doc-cta-block {
+    text-align: center; padding: 50px 6vw; background: var(--doc-navy); color: #fff; margin-top: 40px;
+  }
+  .doc-cta-block h2 { border: none; color: #fff; }
+  .doc-cta-block a.cta {
+    display: inline-block; margin-top: 16px; text-decoration: none; color: #fff; font-weight: 600;
+    background: linear-gradient(135deg, var(--doc-blue), var(--doc-violet)); padding: 12px 26px; border-radius: 8px;
+  }
+  .doc-footer { text-align: center; padding: 24px; font-size: 0.8rem; color: var(--doc-gray); }
+</style>
+</head>
+<body class="doc-page">
+
+  <nav class="doc-nav">
+    <a href="index.html" class="brand">STRUCTA</a>
+    <a href="login.html" class="cta">Créer mon compte gratuit</a>
+  </nav>
+
+  <div class="doc-hero">
+    <h1>Structurez votre entreprise, simplifiez votre quotidien</h1>
+    <p>STRUCTA est l'espace de travail numérique privé qui centralise vos documents, vos méthodes de travail et les informations utiles à votre équipe — pensé pour la réalité des entreprises gabonaises.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>Le problème que nous résolvons</h2>
+    <p>Dans beaucoup de PME gabonaises, les documents importants sont éparpillés : certains sur papier, d'autres sur une clé USB, d'autres encore envoyés par WhatsApp ou perdus dans un Google Drive personnel. Quand un collaborateur quitte l'entreprise, une partie du savoir-faire et des contacts utiles part souvent avec lui. Retrouver un contrat, une facture ou une procédure prend un temps précieux — parfois au pire moment, comme lors d'un contrôle administratif.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>Qu'est-ce que STRUCTA ?</h2>
+    <p>STRUCTA est un espace de travail numérique privé et sécurisé qui centralise, en un seul endroit accessible depuis un ordinateur ou un téléphone : vos documents, vos méthodes de travail, les informations utiles à votre équipe, et des modèles prêts à l'emploi pour les tâches administratives courantes.</p>
+    <p>L'objectif est simple : que l'organisation de votre entreprise ne dépende plus d'une seule personne, d'un classeur ou d'un téléphone individuel.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>Fonctionnalités en détail</h2>
+    <div class="doc-feature-grid">
+
+      <div class="doc-feature-card">
+        <h3>📁 Documents</h3>
+        <p>Organisés par catégories personnalisables, stockés de façon privée et sécurisée, retrouvables en quelques secondes.</p>
+        <div class="benefit">→ Plus aucun document introuvable ou perdu.</div>
+      </div>
+
+      <div class="doc-feature-card">
+        <h3>📷 Scanner intégré</h3>
+        <p>Prenez vos documents papier en photo. STRUCTA recadre, améliore le rendu et assemble plusieurs pages en un seul PDF propre.</p>
+        <div class="benefit">→ Digitalisez vos papiers sans scanner.</div>
+      </div>
+
+      <div class="doc-feature-card">
+        <h3>✅ Procédures</h3>
+        <p>Décrivez vos méthodes de travail : objectif, responsable, documents nécessaires, étapes à suivre.</p>
+        <div class="benefit">→ Un nouvel employé devient autonome plus vite.</div>
+      </div>
+
+      <div class="doc-feature-card">
+        <h3>📚 Connaissances</h3>
+        <p>Centralisez rôles, responsabilités, contacts utiles et notes de fonctionnement interne.</p>
+        <div class="benefit">→ Toute l'équipe sait qui fait quoi.</div>
+      </div>
+
+      <div class="doc-feature-card">
+        <h3>📄 Formulaires</h3>
+        <p>Modèles prêts à l'emploi (contrats, factures, devis...) et liens directs vers les démarches CNSS/DGI.</p>
+        <div class="benefit">→ Gagnez du temps sur l'administratif.</div>
+      </div>
+
+      <div class="doc-feature-card">
+        <h3>👥 Équipe</h3>
+        <p>Invitez vos collaborateurs avec un rôle défini (administrateur ou utilisateur), gérez les accès simplement.</p>
+        <div class="benefit">→ Vous contrôlez qui voit et modifie quoi.</div>
+      </div>
+
+      <div class="doc-feature-card">
+        <h3>🔒 Sécurité</h3>
+        <p>Chaque entreprise dispose de son propre espace strictement privé, accès protégé par compte individuel.</p>
+        <div class="benefit">→ Vos informations restent confidentielles.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="doc-section">
+    <h2>Ce que ça change concrètement</h2>
+    <div class="doc-scenario-list">
+      <div class="doc-scenario">Un employé clé quitte l'entreprise du jour au lendemain — les procédures et contacts utiles restent disponibles pour toute l'équipe.</div>
+      <div class="doc-scenario">Un contrôle CNSS ou DGI arrive — les documents et déclarations nécessaires sont retrouvés en quelques secondes.</div>
+      <div class="doc-scenario">Un nouveau collaborateur rejoint l'équipe — il consulte les procédures et se forme en autonomie.</div>
+      <div class="doc-scenario">Besoin urgent d'un contrat ou d'une facture type — téléchargement immédiat depuis Formulaires.</div>
+    </div>
+  </div>
+
+  <div class="doc-section">
+    <h2>Abonnements</h2>
+    <p>Deux formules, avec un essai gratuit de 14 jours, sans carte bancaire requise.</p>
+    <div class="doc-pricing">
+      <div class="doc-price-card">
+        <h3>Starter</h3>
+        <div class="price">15 000 FCFA / mois</div>
+        <p>Petites structures qui démarrent leur organisation numérique.</p>
+      </div>
+      <div class="doc-price-card pro">
+        <h3>Pro</h3>
+        <div class="price">25 000 FCFA / mois</div>
+        <p>Équipes plus actives, avec plusieurs collaborateurs et un volume de documents plus important.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-cta-block">
+    <h2>Prêt à structurer votre entreprise ?</h2>
+    <p>Créez votre compte gratuitement et profitez de 14 jours d'essai.</p>
+    <a href="login.html" class="cta">Créer mon compte gratuit →</a>
+  </div>
+
+  <div class="doc-footer">STRUCTA — Ognandji Labs</div>
+
+</body>
+</html>
