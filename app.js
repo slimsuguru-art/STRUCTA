@@ -705,7 +705,10 @@ async function initDashboardPage() {
   const companyId = membership.company_id;
   const subtitle = document.getElementById('dashboard-subtitle');
   if (subtitle) {
-    subtitle.textContent = membership.companies.name + ' · ' + (membership.first_name || '');
+    const firstName = membership.first_name || '';
+    subtitle.textContent = firstName
+      ? `Bonjour ${firstName} — bienvenue dans l'espace ${membership.companies.name}.`
+      : `Bienvenue dans l'espace ${membership.companies.name}.`;
   }
 
   const [documentsCount, proceduresCount, categoriesCount, membersCount] = await Promise.all([
