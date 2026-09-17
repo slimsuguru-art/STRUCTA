@@ -2058,6 +2058,25 @@ async function initFormulairesPage() {
 }
 
 
+function initCardTilt() {
+  document.querySelectorAll('.stat-card').forEach(function (card) {
+    card.addEventListener('mousemove', function (e) {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const cx = rect.width / 2, cy = rect.height / 2;
+      const rotateX = ((y - cy) / cy) * -7;
+      const rotateY = ((x - cx) / cx) * 7;
+      card.style.transform = `perspective(700px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px) scale(1.02)`;
+      card.style.setProperty('--mx', x + 'px');
+      card.style.setProperty('--my', y + 'px');
+    });
+    card.addEventListener('mouseleave', function () {
+      card.style.transform = '';
+    });
+  });
+}
+
 /* ========== INITIALISATION GÉNÉRALE ========== */
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -2070,6 +2089,7 @@ document.addEventListener('DOMContentLoaded', function () {
   initResetPasswordPage();
   initSettingsPage();
   initFormulairesPage();
+  initCardTilt();
 
   // Filet de sécurité : si aucune fonction d'initialisation ne correspond à la
   // page actuelle (ex. une future page simple), on masque quand même le loader
